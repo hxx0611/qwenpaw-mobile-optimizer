@@ -1,0 +1,17 @@
+{
+  "name": "QwenPaw",
+  "short_name": "QwenPaw",
+  "description": "QwenPaw Console（移动端优化 v2 提供全屏与图标）",
+  "id": "/?mo2_src=a2hs",
+  "start_url": "/?mo2_src=a2hs",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    { "src": "/api/frontend_plugin/qwenpaw-mobile-optimizer-v2/files/frontend/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/api/frontend_plugin/qwenpaw-mobile-optimizer-v2/files/frontend/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/api/frontend_plugin/qwenpaw-mobile-optimizer-v2/files/frontend/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

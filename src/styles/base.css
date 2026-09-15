@@ -1,0 +1,226 @@
+/* v0.2 基础样式。G1 只放：变量、iOS26 基线守卫、Safari 常驻修正、自检面板样式。
+   收纳/弹层/顶栏样式在 G2/G4 追加；legacy.css 尚未创建（目标：官方类名引用 ≤6 条且只在那个文件里）。 */
+
+:root {
+  /* 自检项⑩：证明本 <style> 真的生效（读计算值） */
+  --mo2-marker: mo2-ok;
+
+  /* 由 env/viewport.js 用 JS 实时刷新（iOS 的 100vh 含工具栏，不可信） */
+  --mo2-vh: 100dvh;
+  --mo2-kbd: 0px;
+  --mo2-safe-top: env(safe-area-inset-top, 0px);
+  --mo2-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --mo2-safe-left: env(safe-area-inset-left, 0px);
+  --mo2-safe-right: env(safe-area-inset-right, 0px);
+}
+
+@media (max-width: 768px) {
+  /* iOS 聚焦防整页放大：字号 <16px 会触发 Safari 缩放（历史踩坑，做常驻守卫） */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* 去 300ms 延迟与灰闪 */
+  a,
+  button,
+  [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 防橡皮筋滚动穿透（面板与滚动容器） */
+  #qwenpaw-mo2-root {
+    overscroll-behavior: contain;
+  }
+}
+
+/* ---------- 顶栏入口与功能面板（G2） ---------- */
+.mo2-topbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.mo2-topbar-on {
+  background: rgba(24, 144, 255, 0.12) !important;
+}
+
+.mo2-drawer .mo2-sheet-list .mo2-row-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 4px;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.14);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mo2-drawer .mo2-row-ico {
+  flex: 0 0 auto;
+  width: 22px;
+  text-align: center;
+  font-size: 16px;
+  opacity: 0.85;
+}
+
+.mo2-drawer .mo2-row-main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mo2-drawer .mo2-row-label {
+  font-size: 15px;
+}
+
+.mo2-drawer .mo2-row-sub {
+  font-size: 11px;
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mo2-drawer .mo2-off {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.mo2-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.mo2-sheet-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mo2-model-select {
+  width: 100%;
+}
+
+.mo2-err {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #d4380d;
+}
+
+/* ---------- 自检面板 ---------- */
+.mo2-selftest {
+  position: fixed;
+  inset: auto 8px calc(8px + var(--mo2-safe-bottom)) 8px;
+  max-height: calc(var(--mo2-vh) - 24px);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  z-index: 9999;
+  background: #fff;
+  color: #171717;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+  padding: 12px 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  user-select: text;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mo2-selftest {
+    background: #1f1f1f;
+    color: #f0f0f0;
+    border-color: #3a3a3a;
+  }
+}
+
+.mo2-selftest h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.mo2-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 0;
+  border-bottom: 1px dashed rgba(127, 127, 127, 0.22);
+}
+
+.mo2-tag {
+  flex: 0 0 auto;
+  min-width: 46px;
+  text-align: center;
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 1px 5px;
+  color: #fff;
+}
+
+.mo2-pass {
+  background: #22a06b;
+}
+
+.mo2-fail {
+  background: #d4380d;
+}
+
+.mo2-warn {
+  background: #d48806;
+}
+
+.mo2-name {
+  flex: 1 1 auto;
+}
+
+.mo2-detail {
+  flex: 0 0 auto;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  opacity: 0.72;
+  max-width: 46%;
+  word-break: break-all;
+  text-align: right;
+}
+
+.mo2-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.mo2-actions button {
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+  background: #fafafa;
+  color: inherit;
+}
+
+.mo2-probe-input {
+  width: 100%;
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+}
+
+/* 自检项⑭：真读 env(safe-area-inset-*)，非零说明 viewport-fit=cover 生效 */
+.mo2-safe-probe {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

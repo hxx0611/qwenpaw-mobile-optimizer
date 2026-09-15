@@ -1,0 +1,38 @@
+/* legacy.css —— 全仓唯一允许出现官方类名前缀的文件。规则上限 6 条，每条必须写明理由。
+   失效模式被刻意压成「某个按钮没藏住」这种外观瑕疵，不会崩、不会锁交互。
+   选择器只用 CSS Modules 的【模块名片段】（modeTrigger / ApprovalToggle-module__trigger …），
+   它们跨构建稳定，只有 __哈希 后缀会变；不用 aria-label（中文文案，i18n 一变就失效）。 */
+
+@media (max-width: 768px) {
+  /* 规则 1：输入框下方只留 麦克风/附件/上下文用量/发送 —— Loop、审批、项目目录收进功能面板。
+     注意：不用 display:none！display:none 会让元素失去盒子，官方弹层按 getBoundingClientRect
+     定位时会退化到 (0,0) 而整层飞出屏幕（v0.1.78 踩过）。这里把盒子压成 0 宽但保留位置，
+     弹层仍然锚在输入框那一行的原位，落在屏内。 */
+  [class*="modeTrigger"],
+  [class*="ApprovalToggle-module__trigger"],
+  [class*="SessionProjectDirectory-module__trigger"] {
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+    font-size: 0 !important;
+    color: transparent !important;
+  }
+
+  /* 规则 2：上条压扁后官方那组按钮的 gap 会留下空隙，收紧一次 */
+  [class*="mobileComposerControl"] {
+    gap: 0 !important;
+  }
+
+
+  /* 规则 3（收尾时单独摘回）：iOS 键盘弹起时抬升输入区。
+     Safari 不支持 interactive-widget=resizes-content，键盘只缩 visualViewport、布局视口不动，
+     所以必须自己抬；用 transform 而非改 height/margin，避免整页重排。
+     --mo2-kbd 由 src/env/viewport.js 写在 :root 上，不碰官方节点的内联样式。 */
+  [class*="sender"] {
+    transform: translateY(calc(-1 * var(--mo2-kbd, 0px)));
+  }
+}
