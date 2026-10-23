@@ -1,13 +1,15 @@
-// 自检面板：把「只能靠真机肉眼验收」变成「机器可读的 16 项 pass/fail」。
+// 自检面板：把「只能靠真机肉眼验收」变成「机器可读的 26 项 pass/fail」。
 // 这是 v0.1.x 最大的方法论教训（Chromium 40+ 轮、WebKit 12 轮全假阴性）的结构性补偿。
 // 只在 URL 带 ?mo_selftest=1 时渲染；只读本机，不外传任何数据。
+// v1.2.0 起 ⑰~⑳ 是 G2 基线，㉑~㉖ 是 C1/C2/C3 新增面（漂移、版本区间、会话栏、底部 Tab、
+// 官方菜单入口、信号链深度）。
 
 import { VERSION } from '../version.js';
 import { probe } from '../api/qw.js';
 import { decide, legacyActive } from '../gate.js';
 import { STYLE_ID, manifestHref } from '../boot/inject.js';
 import { snapshot as vpSnap } from '../env/viewport.js';
-import { availability } from '../legacy/click.js';
+import { availability, signalsReport } from '../legacy/click.js';
 import { getActive } from '../api/models.js';
 
 function bundleFingerprint() {
@@ -151,6 +153,73 @@ export function collect(safeProbeEl, extra) {
     avKeys.length > 0 && avOk.length === avKeys.length,
     avOk.length + '/' + avKeys.length + (avOk.length === avKeys.length ? '' : ' 缺:' + avKeys.filter(function (k) { return !av[k]; }).join(',')),
     avOk.length > 0 && avOk.length < avKeys.length,
+  );
+
+  // ---- v1.2.0 新增：C1/C2/C3 各自的可验证面 ----
+  var meta = window.__mo2 || {};
+  var dr = meta.drift || {};
+  push(
+    '㉑ bundle 指纹已知（漂移监测）',
+    !!dr.known,
+    (dr.bundle || '?') + (dr.known ? '' : ' ← 未知指纹，去跑 scripts/drift-check.py'),
+    !dr.known,
+  );
+  var cp = meta.compat || {};
+  push(
+    '㉒ 平台版本在实测区间',
+    cp.ok === true,
+    (cp.version || '读取中…') + ' ∈ [' + (cp.min || '?') + ', ' + (cp.max || '?') + ']' + (cp.ok === false ? ' ← ' + (cp.err || '') : ''),
+    cp.ok === undefined || cp.ok === false,
+  );
+  var dbtn = document.querySelector('[aria-label="mo2-会话栏"]');
+  var drect = dbtn ? dbtn.getBoundingClientRect() : null;
+  push(
+    '㉓ 会话栏入口在位（顶栏）',
+    !!(drect && drect.width > 0 && drect.height > 0),
+    drect ? Math.round(drect.x) + ',' + Math.round(drect.y) + ' ' + Math.round(drect.width) + 'x' + Math.round(drect.height) : '未找到',
+  );
+  var tabsEL = document.querySelector('.mo2-tabs');
+  var trect = tabsEL ? tabsEL.getBoundingClientRect() : null;
+  var onChat = /^\/($|chat(\/|$))/.test(location.pathname);
+  var tabsIn = onChat ? !tabsEL : !!(trect && trect.bottom <= window.innerHeight + 1 && trect.height > 0);
+  push(
+    '㉔ 底部 Tab 栏（非聊天页在屏内 / 聊天页让位）',
+    tabsIn,
+    onChat
+      ? tabsEL
+        ? '聊天页竟然出现了底栏（会压输入框）'
+        : '聊天页已让位 ✓'
+      : trect
+        ? tabsEL.children.length + ' 项 · y=' + Math.round(trect.y) + ' h=' + Math.round(trect.height)
+        : '未找到',
+  );
+  var it = meta.integration || {};
+  push(
+    '㉕ 官方菜单入口已注册（C1-c）',
+    it.menu === 'ok' && (it.entries || []).length >= 1,
+    'route=' + (it.route || '?') + ' · menu=' + (it.menu || '?') + ' · ' + (it.entries || []).length + ' 条',
+    it.route !== 'ok' || it.menu !== 'ok',
+  );
+  var rep = {};
+  try {
+    rep = signalsReport();
+  } catch (e) {}
+  var keys = Object.keys(rep);
+  var bad = keys.filter(function (k) {
+    return !rep[k].found;
+  });
+  var weak = keys.filter(function (k) {
+    return rep[k].found && rep[k].weak;
+  });
+  push(
+    '㉖ 合成点击信号未漂移（C3-g）',
+    keys.length > 0 && bad.length === 0 && weak.length === 0,
+    bad.length
+      ? '缺:' + bad.join(',')
+      : weak.length
+        ? '吃兜底:' + weak.map(function (k) { return k + '#' + rep[k].depth; }).join(',')
+        : keys.length + ' 条全走首选信号',
+    bad.length > 0 || weak.length > 0,
   );
 
   return items;

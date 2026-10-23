@@ -1,9 +1,9 @@
 {
   "id": "qwenpaw-mobile-optimizer-v2",
-  "name": "移动端优化 Mobile Optimizer",
-  "version": "1.0.0",
+  "name": "移动端优化 (Mobile Optimizer)",
+  "version": "1.2.0",
   "type": "frontend",
-  "description": "QwenPaw 控制台的移动端体验增强（非官方插件）。仅在移动端宽度 ≤768px 且满足 iOS 26 能力基线（CSS Anchor Positioning / :has() / dvh）时生效，PC 端零足迹（不注入样式、不建 DOM、不加监听）。功能：顶栏功能面板（新建会话/模型切换/模型管理/工具管理/文件工作区/Loop 模式/工具审批）、键盘抬升适配、PWA 添加主屏幕、路由感知（非聊天页条目自动回聊天页代点官方入口）。自检：URL 加 ?mo_selftest=1。",
+  "description": "移动端优化：把 QwenPaw 控制台在手机上真正用起来。自绘会话栏 + 左右滑手势、常驻底部导航、官方侧栏菜单入口、模型弹窗键盘适配、以及 26 项浏览器内自检面板。全部走官方扩展 API（host.React/antd/fetch · slot.fill · menu.add · route.add），不读不改官方 DOM、不劫持官方 console。仅在移动端宽度 ≤768px 且具备 iOS 26 能力基线时激活；PC 端零影响（不注入样式、不建节点、不挂监听）。与 v1「移动端优化」互斥：检测到 v1 在跑则本插件让位。",
   "author": "hxx0611",
   "entry": {
     "frontend": "frontend/index.js"
@@ -11,7 +11,7 @@
   "dependencies": [],
   "qwenpaw_version": {
     "min": "2.2.0",
-    "max": "2.4.0"
+    "max": "2.2.2.post1"
   },
   "meta": {
     "category": "ui",
@@ -19,7 +19,13 @@
       "mobile",
       "ios26-baseline",
       "slot-api",
+      "menu-api",
+      "route-api",
+      "session-drawer",
+      "edge-gesture",
+      "bottom-tabs",
       "selftest",
+      "drift-guard",
       "pwa"
     ]
   }

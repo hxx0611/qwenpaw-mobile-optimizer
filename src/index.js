@@ -1,10 +1,13 @@
-// v0.2 入口。激活顺序刻意保守：
+// v1.2.0 入口。激活顺序刻意保守：
 //   1) 只留一个被动全局（供自动化/自检读取，不碰 DOM、不碰 console）
 //   2) 闸门判定；不过 → 就此为止（PC 端零影响）
-//   3) 问服务端插件清单做互斥判定（不用 DOM 指纹，避免与 v1 注入时机的竞态）
-//   4) 注入样式 + manifest/图标链接
-//   5) 起视口测量
-//   6) 若请求了自检 → 经官方 slot 渲染自检面板
+//   3) 弹窗键盘守护先起（全站，见 C1-d：官方模型弹窗在 /models 和聊天页都有）
+//   4) 问服务端插件清单做互斥判定（不用 DOM 指纹，避免与 v1 注入时机的竞态）
+//   5) 注入样式 + manifest/图标链接
+//   6) 起视口测量
+//   7) 注册 chrome（顶栏按钮 / 功能面板 / 底部 Tab / 会话栏）+ 官方菜单与自有路由
+//   8) 起左右滑手势、漂移监测
+//   9) 若请求了自检 → 经官方 slot 渲染自检面板
 // 任何一步失败都必须「整体不注入」，不允许半套生效。
 
 import { VERSION } from './version.js';
@@ -14,8 +17,7 @@ import {
   legacyPresent,
   syncSelfTestFlag,
   selfTestRequested,
-  isChatRoute,
-  isModelsRoute,
+  isBlockedRoute,
   isMobileWidth,
   LOG,
 } from './gate.js';
@@ -26,6 +28,12 @@ import { SelfTest } from './ui/selftest.jsx';
 import { startModelPopupGuard } from './mobile-model-popup.js';
 import { TopBar } from './ui/TopBar.jsx';
 import { FeatureSheet } from './ui/FeatureSheet.jsx';
+import { BottomTabs } from './ui/BottomTabs.jsx';
+import { SessionDrawer } from './ui/SessionDrawer.jsx';
+import { ToolsPage } from './ui/ToolsPage.jsx';
+import { startGestures } from './env/gesture.js';
+import { set, get } from './state.js';
+import { bundleCheck, compat } from './env/drift.js';
 
 // 把一段 React 内容注册进官方插槽。失败即返回错误，由上层决定"整体不注入"——
 // chrome 不做 body 挂载兜底（那是 v1 的 DOM 手术老路），只有自检面板允许兜底。
@@ -41,10 +49,11 @@ function fillChrome(name, el) {
 }
 
 function registerChrome(info) {
-  var React = window.QwenPaw.host.React;
   var list = [
     fillChrome('header.right', <TopBar />),
     fillChrome('overlay.global', <FeatureSheet />),
+    fillChrome('overlay.global', <BottomTabs />),
+    fillChrome('overlay.global', <SessionDrawer />),
   ];
   info.chrome = list.map(function (r) {
     return { name: r.name, ok: r.ok, error: r.error || '' };
@@ -55,6 +64,48 @@ function registerChrome(info) {
   return list.every(function (r) {
     return r.ok;
   });
+}
+
+// 官方集成（C1-c）：自有路由（官方 route.add）+ 官方侧栏 / 用户菜单入口（官方 menu.add）。
+// 两条纪律：
+//  ① 路由注册失败就不挂菜单 —— 否则菜单点了会落到空白页（实测未注册的 /mo2 是空页）；
+//  ② 路由是「导航面」不是「平行后台」：页面内容 = 官方页面入口 + 本插件状态，不复制官方功能。
+function registerIntegration(info) {
+  var qw = window.QwenPaw || {};
+  var out = { route: 'skip', menu: 'skip', entries: [] };
+
+  if (qw.route && typeof qw.route.add === 'function') {
+    try {
+      qw.route.add(PLUGIN_ID, { id: PLUGIN_ID + '.tools', path: '/mo2', component: ToolsPage });
+      out.route = 'ok';
+    } catch (e) {
+      out.route = 'error: ' + ((e && e.message) || e);
+    }
+  } else {
+    out.route = 'no route.add';
+  }
+  if (out.route !== 'ok') {
+    out.menu = 'skipped（路由没注册，不给死链）';
+    return out;
+  }
+
+  if (!qw.menu || typeof qw.menu.add !== 'function') {
+    out.menu = 'no menu.add';
+    return out;
+  }
+  var items = [
+    { id: PLUGIN_ID + '.tools.agent', label: '移动端工具', location: 'primary.agentScoped', route: PLUGIN_ID + '.tools', order: 90 },
+    { id: PLUGIN_ID + '.tools.settings', label: '移动端优化', location: 'primary.settings', route: PLUGIN_ID + '.tools', order: 90 },
+    { id: PLUGIN_ID + '.tools.user', label: '移动端工具', location: 'userMenu', route: PLUGIN_ID + '.tools', order: 90 },
+  ];
+  try {
+    qw.menu.add(PLUGIN_ID, items);
+    out.menu = 'ok';
+    out.entries = items.map(function (i) { return i.id; });
+  } catch (e) {
+    out.menu = 'error: ' + ((e && e.message) || e);
+  }
+  return out;
 }
 
 function renderSelfTest() {
@@ -81,16 +132,19 @@ function renderSelfTest() {
 
 function cleanup(info) {
   try { (info.disposables || []).forEach(function (d) { if (typeof d === 'function') d(); }); } catch (e) {}
+  try { if (info.stopGestures) info.stopGestures(); } catch (e) {}
   try { stopViewport(); } catch (e) {}
   try { var st = document.getElementById('qwenpaw-mo2-style'); if (st) st.remove(); } catch (e) {}
   try { var root = document.getElementById('qwenpaw-mo2-root'); if (root) root.remove(); } catch (e) {}
   try { document.querySelectorAll('head link[data-mo2], head meta[data-mo2]').forEach(function (el) { el.remove(); }); } catch (e) {}
+  set({ sheet: false, modelView: false, drawer: false, pagesView: false });
   info.active = false;
   info.cleaned = true;
+  // 注意：弹窗键盘守护【不】在这里收（C1-d 要求全站生效），只有整个页面重载才会消失
 }
 
 function reactivate(info) {
-  // chat→非chat→chat 的回魂路径：cleanup 只摘了核心（样式/视口/chrome），
+  // 从登录页回来的回魂路径：cleanup 只摘了核心（样式/视口/chrome），
   // 官方插槽若有残留则 chrome 仍在——此时只补核心，避免重复注册。
   injectStyle();
   startViewport();
@@ -107,14 +161,15 @@ function watchRoute(info) {
     var now = window.location.pathname || '/';
     if (now === last) return;
     last = now;
-    if (!isChatRoute()) cleanup(info);
+    if (isBlockedRoute()) cleanup(info);
     else if (info.cleaned) reactivate(info);
   };
   window.addEventListener('popstate', check);
   window.addEventListener('hashchange', check);
   var timer = window.setInterval(check, 500);
+  info.routeWatch = timer;
   // 刻意【不】把本监听放进 info.disposables：cleanup 若把自己杀掉，
-  // 聊天页就永远回不来了（zombie chrome 的根因）。它只是每 500ms 比一次路径，成本可忽略。
+  // 登录页出来后 chrome 就永远回不来了（zombie chrome 的根因）。它只是每 500ms 比一次路径，成本可忽略。
 }
 
 async function boot() {
@@ -126,21 +181,25 @@ async function boot() {
 
   syncSelfTestFlag(); // 要在 SPA 把 "/" 重定向成 "/chat" 之前把开关落进 sessionStorage
 
-  // Models page gets only the narrowly scoped keyboard/popup guard; no global UI/CSS injection.
-  if (isModelsRoute() && isMobileWidth()) {
-    info.active = true;
-    info.modelsPopupGuard = true;
-    info.disposables = [startModelPopupGuard()];
-    watchRoute(info);
-    return;
-  }
-
   var d = decide();
   if (!d.ok) {
     info.blocked = d.blocked;
     if (d.debug) console.info(LOG + ' 未激活：' + d.blocked.join('；'));
     return; // ← PC 端到此为止：无样式、无 DOM、无监听、无 console 劫持
   }
+
+  // 漂移监测（C3-g/C3-h）：先落数据，再决定要不要告警 —— 它不影响激活与否。
+  info.drift = bundleCheck();
+  if (info.drift.unknown) console.info(LOG + ' 漂移告警：' + info.drift.hint);
+  compat().then(function (c) {
+    info.compat = c;
+    if (!c.ok) console.info(LOG + ' 版本越界：' + (c.err || ''));
+  });
+
+  // C1-d：官方「模型选择」弹窗在 /models 和聊天页都会出现，键盘适配必须全站生效，
+  // 且它不随路由回收（放 info.popupDisposable，不进 disposables）。
+  info.popupGuard = true;
+  info.popupDisposable = startModelPopupGuard();
 
   var legacy = await legacyPresent();
   info.legacy = legacy;
@@ -158,7 +217,13 @@ async function boot() {
   info.active = true;
   info.probe = probe();
   info.viewport = vpSnapshot();
-  info.chromeOk = registerChrome(info); // 顶栏入口 + 功能面板（官方插槽）
+  info.chromeOk = registerChrome(info); // 顶栏入口 + 功能面板 + 底部 Tab + 会话栏（官方插槽）
+  info.integration = registerIntegration(info); // 自有路由 + 官方菜单入口
+  info.stopGestures = startGestures({
+    open: function () { set({ drawer: true }); },
+    close: function () { set({ drawer: false }); },
+    isOpen: function () { return !!get().drawer; },
+  });
   watchRoute(info);
 
   if (selfTestRequested()) {
@@ -168,7 +233,7 @@ async function boot() {
   }
 
   console.info(
-    LOG + ' v' + VERSION + ' 已激活（仅移动端 ≤768px · iOS26 基线通过）· 自检入口：URL 加 ?mo_selftest=1',
+    LOG + ' v' + VERSION + ' 已激活（移动端 ≤768px · iOS26 基线通过 · 全站 chrome 除登录页）· 自检入口：URL 加 ?mo_selftest=1',
   );
 }
 

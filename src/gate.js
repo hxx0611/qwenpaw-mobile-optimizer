@@ -35,11 +35,24 @@ export function hasBaseline() {
 }
 
 
-// 插件只作用于聊天路由；管理/设置页面必须完全让位，避免移动端样式和插槽影响官方页面。
+// 路由闸门：v1.2.0 起从「只在聊天路由激活」放宽为「除登录页外都激活」。
+// 为什么放宽：底部 Tab 栏（C1-b）是常驻导航，如果一到 /models 就整块卸掉，用户会被困在
+// 管理页里（只剩浏览器返回）；同时 C1-d 要求弹窗键盘守护覆盖全站。官方 CSS 我们一条都不改
+// （base.css 全部挂在 .mo2-* 自有类上），所以放宽的风险面只是「多几个自有节点」。
+// 仍然让位的地方：登录/鉴权页（不能挡住官方登录流程）、非移动宽度、非 iOS26 基线、v1 在跑。
 export function isChatRoute() {
   try {
     var path = window.location.pathname || '/';
     return path === '/' || path === '/chat' || path.indexOf('/chat/') === 0;
+  } catch (e) {
+    return false;
+  }
+}
+
+export function isBlockedRoute() {
+  try {
+    var p = window.location.pathname || '/';
+    return /^\/(login|token|register)(\/|$)/.test(p);
   } catch (e) {
     return false;
   }
@@ -145,7 +158,7 @@ export function selfTestRequested() {
 export function decide() {
   var debug = debugRequested();
   var blocked = [];
-  if (!isChatRoute() && !debug) blocked.push('当前不是聊天页面，插件让位');
+  if (isBlockedRoute() && !debug) blocked.push('当前是登录/鉴权页，插件让位');
   if (!isMobileWidth() && !debug) blocked.push('视口宽度 > 768px（PC 端不生效）');
   if (!hasBaseline() && !debug) blocked.push('不满足 iOS 26 能力基线（缺 anchor-name / :has / dvh）');
   if (legacyActive()) blocked.push('检测到 v1「移动端优化」正在运行，v2 让位（一键回滚设计）');

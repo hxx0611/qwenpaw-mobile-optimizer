@@ -224,3 +224,234 @@
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+/* ================= v1.2.0 追加（C1-a 会话栏 / C1-b 底部 Tab / C2-f 更多页面 / C1-c 工具页） =================
+   全部挂在 .mo2-* 自有类上：不动官方类名（legacy.css 预算仍是 3/6 条），
+   也不改官方节点的任何属性 —— 这是「官方插槽 + 自有 CSS」路线的底线。 */
+
+.mo2-tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900;
+  display: flex;
+  align-items: stretch;
+  height: 52px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: rgba(255, 255, 255, 0.96);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.mo2-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 11px;
+  color: #8c8c8c;
+  cursor: pointer;
+}
+
+.mo2-tab-on {
+  color: #1677ff;
+}
+
+.mo2-tab-ico {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.mo2-session-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mo2-session-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.mo2-session-gtitle {
+  margin: 10px 4px 4px;
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.mo2-session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.mo2-session-item:active {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.mo2-session-cur {
+  background: rgba(22, 119, 255, 0.08);
+}
+
+.mo2-session-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.mo2-session-side {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+.mo2-empty {
+  padding: 16px 6px;
+  font-size: 13px;
+  color: #8c8c8c;
+  text-align: center;
+}
+
+.mo2-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 14px calc(76px + env(safe-area-inset-bottom, 0px));
+}
+
+.mo2-tools-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.mo2-tools-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.mo2-tools-ver {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.mo2-tools-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.mo2-tools-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.mo2-tools-k {
+  flex: 0 0 auto;
+  color: #8c8c8c;
+}
+
+.mo2-tools-v {
+  text-align: right;
+  word-break: break-all;
+}
+
+.mo2-bad {
+  color: #cf1322;
+}
+
+.mo2-tools-sec {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.mo2-tools-grid,
+.mo2-pages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding-bottom: 6px;
+}
+
+.mo2-tools-item,
+.mo2-pages-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 62px;
+  padding: 8px 4px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: none;
+  font-size: 12px;
+  color: inherit;
+}
+
+.mo2-tools-ico {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.mo2-tools-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mo2-sheet-body {
+  max-height: min(62vh, calc(var(--mo2-vh, 100dvh) - var(--mo2-kbd, 0px) - 120px));
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 深色：官方控制台可跟随系统深色，硬白底会刺眼 */
+@media (prefers-color-scheme: dark) {
+  .mo2-tabs {
+    background: rgba(20, 20, 22, 0.94);
+    border-top-color: rgba(255, 255, 255, 0.12);
+  }
+  .mo2-session-item {
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .mo2-session-cur {
+    background: rgba(22, 119, 255, 0.16);
+  }
+  .mo2-tools-card,
+  .mo2-tools-item,
+  .mo2-pages-item {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+  }
+}

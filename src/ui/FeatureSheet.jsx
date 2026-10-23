@@ -6,7 +6,8 @@
 //     标「需回聊天页」且保留点击：自动 navigate('/') 后轮询等挂载代点（waitOfficial）。
 
 import { antd, icons, toast } from '../api/qw.js';
-import { useAppState, set, toggleSheet } from '../state.js';
+import { useAppState, set, toggleSheet, toggleDrawer } from '../state.js';
+import { PAGES } from '../api/pages.js';
 import { clickOfficial, waitOfficial, availability } from '../legacy/click.js';
 import { navigate, isChatRoute } from '../api/nav.js';
 import { listProviders, getActive, buildOptions, setActive } from '../api/models.js';
@@ -81,7 +82,7 @@ export function FeatureSheet() {
 
   function close() {
     toggleSheet(false);
-    set({ modelView: false });
+    set({ modelView: false, pagesView: false });
   }
 
   // 合成点击条目三段式（方案A）：本页有信号直接点；不在聊天页则先 navigate('/')
@@ -160,6 +161,37 @@ export function FeatureSheet() {
   items.push(composerItem('workspace', '打开文件工作区', I.FolderOpenOutlined));
   items.push(composerItem('loopMode', 'Loop 模式', I.SyncOutlined));
   items.push(composerItem('approval', '工具审批模式', I.SafetyCertificateOutlined));
+  // v1.2.0 扩容（C2-f）：会话栏走自绘抽屉（纯 API），工具页是我们的官方路由，
+  // 「更多功能」二级视图列官方真实页面 —— 三者都不依赖官方 DOM，不会「点了没反应」。
+  items.push({
+    key: 'sessions',
+    label: '会话列表',
+    sub: '自绘侧栏 · 左右滑手势也能开',
+    icon: I.UnorderedListOutlined,
+    run: function () {
+      close();
+      toggleDrawer(true);
+    },
+  });
+  items.push({
+    key: 'toolsPage',
+    label: '移动端工具',
+    sub: '/mo2',
+    icon: I.AppstoreOutlined,
+    run: function () {
+      close();
+      navigate('/mo2');
+    },
+  });
+  items.push({
+    key: 'more',
+    label: '更多官方页面',
+    sub: PAGES.length + ' 个入口',
+    icon: I.MoreOutlined,
+    run: function () {
+      set({ pagesView: true });
+    },
+  });
   if (!isChatRoute()) {
     items.push({
       key: 'back',
@@ -194,7 +226,44 @@ export function FeatureSheet() {
     return list;
   }
 
-  var body = st.modelView ? (
+  var pagesBody = (
+    <div className="mo2-sheet-body">
+      <div className="mo2-sheet-head">
+        <A.Button
+          size="small"
+          type="text"
+          aria-label="mo2-返回条目"
+          icon={Back ? <Back /> : '←'}
+          onClick={function () {
+            set({ pagesView: false });
+          }}
+        />
+        <span className="mo2-sheet-title">更多官方页面</span>
+      </div>
+      <div className="mo2-pages-grid">
+        {PAGES.map(function (p) {
+          var Ic = I[p.icon];
+          return (
+            <button
+              key={p.key}
+              type="button"
+              className="mo2-pages-item"
+              aria-label={'mo2-page-' + p.key}
+              onClick={function () {
+                close();
+                navigate(p.path);
+              }}
+            >
+              <span className="mo2-tools-ico">{Ic ? <Ic /> : '·'}</span>
+              <span className="mo2-tools-label">{p.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  var body = st.pagesView ? pagesBody : st.modelView ? (
     <div className="mo2-sheet-body">
       <div className="mo2-sheet-head">
         <A.Button

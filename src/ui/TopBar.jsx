@@ -2,7 +2,7 @@
 // 按已确认决策：面板入口放【顶栏右侧】，且【保留官方会话标题】——所以我们不隐藏任何标题类节点。
 
 import { antd, icons } from '../api/qw.js';
-import { useAppState, toggleSheet } from '../state.js';
+import { useAppState, toggleSheet, toggleDrawer } from '../state.js';
 import { clickOfficial } from '../legacy/click.js';
 import { navigate } from '../api/nav.js';
 
@@ -20,9 +20,21 @@ export function TopBar() {
 
   var Plus = I.PlusOutlined;
   var Grid = I.AppstoreOutlined;
+  var List = I.UnorderedListOutlined;
 
   return (
     <span className="mo2-topbar">
+      <A.Button
+        size="small"
+        type="text"
+        shape="circle"
+        aria-label="mo2-会话栏"
+        className={st.drawer ? 'mo2-topbar-on' : ''}
+        icon={List ? <List /> : '☰'}
+        onClick={function () {
+          toggleDrawer();
+        }}
+      />
       {A.Tooltip ? (
         <A.Tooltip title="新建对话">
           <A.Button

@@ -6,8 +6,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
-// esbuild 独立二进制：npm i -g esbuild 后走 PATH，或用 ESB_BIN 指定绝对路径
-const ESB = process.env.ESB_BIN || 'esbuild';
+const ESB = '/app/user-packages/node/bin/esbuild';
 const OUT = join(ROOT, 'frontend', 'index.js');
 
 function run(args) {

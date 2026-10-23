@@ -5,10 +5,8 @@
 # 要点：iOS apple-touch-icon 不接受透明（会填黑）→ 统一白底 flatten；
 #       maskable 版要留安全区 → logo 缩放比例更小。
 set -e
-CHROME="${CHROME:-chromium}"
-# 必须显式指定官方 logo 路径（QwenPaw 安装目录下 console/online.svg），
-# 例：SVG=$(python3 -c 'import qwenpaw,os;print(os.path.dirname(qwenpaw.__file__))')/console/online.svg sh scripts/make-icons.sh
-SVG="${SVG:?请设置 SVG=官方 console/online.svg 路径}"
+CHROME="${CHROME:-/usr/bin/chromium}"
+SVG="${SVG:-/app/venv/lib/python3.11/site-packages/qwenpaw/console/online.svg}"
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT="$ROOT/frontend/icons"
 TMP=$(mktemp -d)

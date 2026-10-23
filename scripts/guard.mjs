@@ -96,7 +96,7 @@ try {
 //    包括 .git/HEAD、.git/config（实测曾被无鉴权抓到）→ 仓库数据必须放在插件目录之外。
 if (existsSync(join(ROOT, '.git'))) {
   violations++;
-  console.log('✗ [no-git-in-plugin] 插件目录内不得存在 .git（会被公开端点下载）；仓库数据请放插件目录之外');
+  console.log('✗ [no-git-in-plugin] 插件目录内不得存在 .git（会被公开端点下载）；请用 scripts/mo2-git.sh');
 }
 
 if (violations) {

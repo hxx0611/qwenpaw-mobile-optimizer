@@ -1,7 +1,7 @@
-/* 浏览器插件 (Mobile Optimizer v2) v1.0.0 — 构建产物，请勿直接编辑，源码见 src/
+/* 浏览器插件 (Mobile Optimizer v2) v1.2.0 — 构建产物，请勿直接编辑，源码见 src/
    由 scripts/build.mjs 生成；改代码后必须重新构建再热加载。 */
 // src/version.js
-var VERSION = "1.0.0";
+var VERSION = "1.2.0";
 
 // src/gate.js
 var LOG = "[\u6D4F\u89C8\u5668\u63D2\u4EF6 v2]";
@@ -32,9 +32,10 @@ function isChatRoute() {
     return false;
   }
 }
-function isModelsRoute() {
+function isBlockedRoute() {
   try {
-    return (window.location.pathname || "") === "/models" || (window.location.pathname || "").indexOf("/models/") === 0;
+    var p = window.location.pathname || "/";
+    return /^\/(login|token|register)(\/|$)/.test(p);
   } catch (e) {
     return false;
   }
@@ -120,7 +121,7 @@ function selfTestRequested() {
 function decide() {
   var debug = debugRequested();
   var blocked = [];
-  if (!isChatRoute() && !debug) blocked.push("\u5F53\u524D\u4E0D\u662F\u804A\u5929\u9875\u9762\uFF0C\u63D2\u4EF6\u8BA9\u4F4D");
+  if (isBlockedRoute() && !debug) blocked.push("\u5F53\u524D\u662F\u767B\u5F55/\u9274\u6743\u9875\uFF0C\u63D2\u4EF6\u8BA9\u4F4D");
   if (!isMobileWidth() && !debug) blocked.push("\u89C6\u53E3\u5BBD\u5EA6 > 768px\uFF08PC \u7AEF\u4E0D\u751F\u6548\uFF09");
   if (!hasBaseline() && !debug) blocked.push("\u4E0D\u6EE1\u8DB3 iOS 26 \u80FD\u529B\u57FA\u7EBF\uFF08\u7F3A anchor-name / :has / dvh\uFF09");
   if (legacyActive()) blocked.push("\u68C0\u6D4B\u5230 v1\u300C\u79FB\u52A8\u7AEF\u4F18\u5316\u300D\u6B63\u5728\u8FD0\u884C\uFF0Cv2 \u8BA9\u4F4D\uFF08\u4E00\u952E\u56DE\u6EDA\u8BBE\u8BA1\uFF09");
@@ -201,7 +202,7 @@ function probe() {
 var PLUGIN_ID = "qwenpaw-mobile-optimizer-v2";
 
 // src/styles/base.css
-var base_default = '/* v0.2 \u57FA\u7840\u6837\u5F0F\u3002G1 \u53EA\u653E\uFF1A\u53D8\u91CF\u3001iOS26 \u57FA\u7EBF\u5B88\u536B\u3001Safari \u5E38\u9A7B\u4FEE\u6B63\u3001\u81EA\u68C0\u9762\u677F\u6837\u5F0F\u3002\n   \u6536\u7EB3/\u5F39\u5C42/\u9876\u680F\u6837\u5F0F\u5728 G2/G4 \u8FFD\u52A0\uFF1Blegacy.css \u5C1A\u672A\u521B\u5EFA\uFF08\u76EE\u6807\uFF1A\u5B98\u65B9\u7C7B\u540D\u5F15\u7528 \u22646 \u6761\u4E14\u53EA\u5728\u90A3\u4E2A\u6587\u4EF6\u91CC\uFF09\u3002 */\n\n:root {\n  /* \u81EA\u68C0\u9879\u2469\uFF1A\u8BC1\u660E\u672C <style> \u771F\u7684\u751F\u6548\uFF08\u8BFB\u8BA1\u7B97\u503C\uFF09 */\n  --mo2-marker: mo2-ok;\n\n  /* \u7531 env/viewport.js \u7528 JS \u5B9E\u65F6\u5237\u65B0\uFF08iOS \u7684 100vh \u542B\u5DE5\u5177\u680F\uFF0C\u4E0D\u53EF\u4FE1\uFF09 */\n  --mo2-vh: 100dvh;\n  --mo2-kbd: 0px;\n  --mo2-safe-top: env(safe-area-inset-top, 0px);\n  --mo2-safe-bottom: env(safe-area-inset-bottom, 0px);\n  --mo2-safe-left: env(safe-area-inset-left, 0px);\n  --mo2-safe-right: env(safe-area-inset-right, 0px);\n}\n\n@media (max-width: 768px) {\n  /* iOS \u805A\u7126\u9632\u6574\u9875\u653E\u5927\uFF1A\u5B57\u53F7 <16px \u4F1A\u89E6\u53D1 Safari \u7F29\u653E\uFF08\u5386\u53F2\u8E29\u5751\uFF0C\u505A\u5E38\u9A7B\u5B88\u536B\uFF09 */\n  input,\n  textarea,\n  select {\n    font-size: 16px !important;\n  }\n\n  /* \u53BB 300ms \u5EF6\u8FDF\u4E0E\u7070\u95EA */\n  a,\n  button,\n  [role="button"] {\n    touch-action: manipulation;\n    -webkit-tap-highlight-color: transparent;\n  }\n\n  /* \u9632\u6A61\u76AE\u7B4B\u6EDA\u52A8\u7A7F\u900F\uFF08\u9762\u677F\u4E0E\u6EDA\u52A8\u5BB9\u5668\uFF09 */\n  #qwenpaw-mo2-root {\n    overscroll-behavior: contain;\n  }\n}\n\n/* ---------- \u9876\u680F\u5165\u53E3\u4E0E\u529F\u80FD\u9762\u677F\uFF08G2\uFF09 ---------- */\n.mo2-topbar {\n  display: inline-flex;\n  align-items: center;\n  gap: 2px;\n}\n\n.mo2-topbar-on {\n  background: rgba(24, 144, 255, 0.12) !important;\n}\n\n.mo2-drawer .mo2-sheet-list .mo2-row-item {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  padding: 13px 4px;\n  border-bottom: 1px solid rgba(127, 127, 127, 0.14);\n  cursor: pointer;\n  -webkit-tap-highlight-color: transparent;\n}\n\n.mo2-drawer .mo2-row-ico {\n  flex: 0 0 auto;\n  width: 22px;\n  text-align: center;\n  font-size: 16px;\n  opacity: 0.85;\n}\n\n.mo2-drawer .mo2-row-main {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  min-width: 0;\n}\n\n.mo2-drawer .mo2-row-label {\n  font-size: 15px;\n}\n\n.mo2-drawer .mo2-row-sub {\n  font-size: 11px;\n  opacity: 0.6;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.mo2-drawer .mo2-off {\n  opacity: 0.45;\n  pointer-events: none;\n}\n\n.mo2-sheet-head {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  margin-bottom: 8px;\n}\n\n.mo2-sheet-title {\n  font-size: 14px;\n  font-weight: 600;\n}\n\n.mo2-model-select {\n  width: 100%;\n}\n\n.mo2-err {\n  margin-top: 8px;\n  font-size: 12px;\n  color: #d4380d;\n}\n\n/* ---------- \u81EA\u68C0\u9762\u677F ---------- */\n.mo2-selftest {\n  position: fixed;\n  inset: auto 8px calc(8px + var(--mo2-safe-bottom)) 8px;\n  max-height: calc(var(--mo2-vh) - 24px);\n  overflow: auto;\n  -webkit-overflow-scrolling: touch;\n  z-index: 9999;\n  background: #fff;\n  color: #171717;\n  border: 1px solid #e5e5e5;\n  border-radius: 12px;\n  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);\n  padding: 12px 12px 14px;\n  font-size: 13px;\n  line-height: 1.5;\n  user-select: text;\n}\n\n@media (prefers-color-scheme: dark) {\n  .mo2-selftest {\n    background: #1f1f1f;\n    color: #f0f0f0;\n    border-color: #3a3a3a;\n  }\n}\n\n.mo2-selftest h3 {\n  margin: 0 0 8px;\n  font-size: 14px;\n}\n\n.mo2-row {\n  display: flex;\n  align-items: baseline;\n  gap: 6px;\n  padding: 3px 0;\n  border-bottom: 1px dashed rgba(127, 127, 127, 0.22);\n}\n\n.mo2-tag {\n  flex: 0 0 auto;\n  min-width: 46px;\n  text-align: center;\n  border-radius: 4px;\n  font-size: 11px;\n  padding: 1px 5px;\n  color: #fff;\n}\n\n.mo2-pass {\n  background: #22a06b;\n}\n\n.mo2-fail {\n  background: #d4380d;\n}\n\n.mo2-warn {\n  background: #d48806;\n}\n\n.mo2-name {\n  flex: 1 1 auto;\n}\n\n.mo2-detail {\n  flex: 0 0 auto;\n  font-family: ui-monospace, Menlo, monospace;\n  font-size: 11px;\n  opacity: 0.72;\n  max-width: 46%;\n  word-break: break-all;\n  text-align: right;\n}\n\n.mo2-actions {\n  display: flex;\n  gap: 8px;\n  margin-top: 10px;\n}\n\n.mo2-actions button {\n  font-size: 13px;\n  padding: 6px 10px;\n  border-radius: 8px;\n  border: 1px solid #d9d9d9;\n  background: #fafafa;\n  color: inherit;\n}\n\n.mo2-probe-input {\n  width: 100%;\n  margin: 8px 0 0;\n  padding: 8px 10px;\n  border: 1px solid #d9d9d9;\n  border-radius: 8px;\n}\n\n/* \u81EA\u68C0\u9879\u246D\uFF1A\u771F\u8BFB env(safe-area-inset-*)\uFF0C\u975E\u96F6\u8BF4\u660E viewport-fit=cover \u751F\u6548 */\n.mo2-safe-probe {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 1px;\n  height: 1px;\n  pointer-events: none;\n  opacity: 0;\n  padding-left: env(safe-area-inset-left, 0px);\n  padding-right: env(safe-area-inset-right, 0px);\n  padding-top: env(safe-area-inset-top, 0px);\n  padding-bottom: env(safe-area-inset-bottom, 0px);\n}\n';
+var base_default = '/* v0.2 \u57FA\u7840\u6837\u5F0F\u3002G1 \u53EA\u653E\uFF1A\u53D8\u91CF\u3001iOS26 \u57FA\u7EBF\u5B88\u536B\u3001Safari \u5E38\u9A7B\u4FEE\u6B63\u3001\u81EA\u68C0\u9762\u677F\u6837\u5F0F\u3002\n   \u6536\u7EB3/\u5F39\u5C42/\u9876\u680F\u6837\u5F0F\u5728 G2/G4 \u8FFD\u52A0\uFF1Blegacy.css \u5C1A\u672A\u521B\u5EFA\uFF08\u76EE\u6807\uFF1A\u5B98\u65B9\u7C7B\u540D\u5F15\u7528 \u22646 \u6761\u4E14\u53EA\u5728\u90A3\u4E2A\u6587\u4EF6\u91CC\uFF09\u3002 */\n\n:root {\n  /* \u81EA\u68C0\u9879\u2469\uFF1A\u8BC1\u660E\u672C <style> \u771F\u7684\u751F\u6548\uFF08\u8BFB\u8BA1\u7B97\u503C\uFF09 */\n  --mo2-marker: mo2-ok;\n\n  /* \u7531 env/viewport.js \u7528 JS \u5B9E\u65F6\u5237\u65B0\uFF08iOS \u7684 100vh \u542B\u5DE5\u5177\u680F\uFF0C\u4E0D\u53EF\u4FE1\uFF09 */\n  --mo2-vh: 100dvh;\n  --mo2-kbd: 0px;\n  --mo2-safe-top: env(safe-area-inset-top, 0px);\n  --mo2-safe-bottom: env(safe-area-inset-bottom, 0px);\n  --mo2-safe-left: env(safe-area-inset-left, 0px);\n  --mo2-safe-right: env(safe-area-inset-right, 0px);\n}\n\n@media (max-width: 768px) {\n  /* iOS \u805A\u7126\u9632\u6574\u9875\u653E\u5927\uFF1A\u5B57\u53F7 <16px \u4F1A\u89E6\u53D1 Safari \u7F29\u653E\uFF08\u5386\u53F2\u8E29\u5751\uFF0C\u505A\u5E38\u9A7B\u5B88\u536B\uFF09 */\n  input,\n  textarea,\n  select {\n    font-size: 16px !important;\n  }\n\n  /* \u53BB 300ms \u5EF6\u8FDF\u4E0E\u7070\u95EA */\n  a,\n  button,\n  [role="button"] {\n    touch-action: manipulation;\n    -webkit-tap-highlight-color: transparent;\n  }\n\n  /* \u9632\u6A61\u76AE\u7B4B\u6EDA\u52A8\u7A7F\u900F\uFF08\u9762\u677F\u4E0E\u6EDA\u52A8\u5BB9\u5668\uFF09 */\n  #qwenpaw-mo2-root {\n    overscroll-behavior: contain;\n  }\n}\n\n/* ---------- \u9876\u680F\u5165\u53E3\u4E0E\u529F\u80FD\u9762\u677F\uFF08G2\uFF09 ---------- */\n.mo2-topbar {\n  display: inline-flex;\n  align-items: center;\n  gap: 2px;\n}\n\n.mo2-topbar-on {\n  background: rgba(24, 144, 255, 0.12) !important;\n}\n\n.mo2-drawer .mo2-sheet-list .mo2-row-item {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  padding: 13px 4px;\n  border-bottom: 1px solid rgba(127, 127, 127, 0.14);\n  cursor: pointer;\n  -webkit-tap-highlight-color: transparent;\n}\n\n.mo2-drawer .mo2-row-ico {\n  flex: 0 0 auto;\n  width: 22px;\n  text-align: center;\n  font-size: 16px;\n  opacity: 0.85;\n}\n\n.mo2-drawer .mo2-row-main {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  min-width: 0;\n}\n\n.mo2-drawer .mo2-row-label {\n  font-size: 15px;\n}\n\n.mo2-drawer .mo2-row-sub {\n  font-size: 11px;\n  opacity: 0.6;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.mo2-drawer .mo2-off {\n  opacity: 0.45;\n  pointer-events: none;\n}\n\n.mo2-sheet-head {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  margin-bottom: 8px;\n}\n\n.mo2-sheet-title {\n  font-size: 14px;\n  font-weight: 600;\n}\n\n.mo2-model-select {\n  width: 100%;\n}\n\n.mo2-err {\n  margin-top: 8px;\n  font-size: 12px;\n  color: #d4380d;\n}\n\n/* ---------- \u81EA\u68C0\u9762\u677F ---------- */\n.mo2-selftest {\n  position: fixed;\n  inset: auto 8px calc(8px + var(--mo2-safe-bottom)) 8px;\n  max-height: calc(var(--mo2-vh) - 24px);\n  overflow: auto;\n  -webkit-overflow-scrolling: touch;\n  z-index: 9999;\n  background: #fff;\n  color: #171717;\n  border: 1px solid #e5e5e5;\n  border-radius: 12px;\n  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);\n  padding: 12px 12px 14px;\n  font-size: 13px;\n  line-height: 1.5;\n  user-select: text;\n}\n\n@media (prefers-color-scheme: dark) {\n  .mo2-selftest {\n    background: #1f1f1f;\n    color: #f0f0f0;\n    border-color: #3a3a3a;\n  }\n}\n\n.mo2-selftest h3 {\n  margin: 0 0 8px;\n  font-size: 14px;\n}\n\n.mo2-row {\n  display: flex;\n  align-items: baseline;\n  gap: 6px;\n  padding: 3px 0;\n  border-bottom: 1px dashed rgba(127, 127, 127, 0.22);\n}\n\n.mo2-tag {\n  flex: 0 0 auto;\n  min-width: 46px;\n  text-align: center;\n  border-radius: 4px;\n  font-size: 11px;\n  padding: 1px 5px;\n  color: #fff;\n}\n\n.mo2-pass {\n  background: #22a06b;\n}\n\n.mo2-fail {\n  background: #d4380d;\n}\n\n.mo2-warn {\n  background: #d48806;\n}\n\n.mo2-name {\n  flex: 1 1 auto;\n}\n\n.mo2-detail {\n  flex: 0 0 auto;\n  font-family: ui-monospace, Menlo, monospace;\n  font-size: 11px;\n  opacity: 0.72;\n  max-width: 46%;\n  word-break: break-all;\n  text-align: right;\n}\n\n.mo2-actions {\n  display: flex;\n  gap: 8px;\n  margin-top: 10px;\n}\n\n.mo2-actions button {\n  font-size: 13px;\n  padding: 6px 10px;\n  border-radius: 8px;\n  border: 1px solid #d9d9d9;\n  background: #fafafa;\n  color: inherit;\n}\n\n.mo2-probe-input {\n  width: 100%;\n  margin: 8px 0 0;\n  padding: 8px 10px;\n  border: 1px solid #d9d9d9;\n  border-radius: 8px;\n}\n\n/* \u81EA\u68C0\u9879\u246D\uFF1A\u771F\u8BFB env(safe-area-inset-*)\uFF0C\u975E\u96F6\u8BF4\u660E viewport-fit=cover \u751F\u6548 */\n.mo2-safe-probe {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 1px;\n  height: 1px;\n  pointer-events: none;\n  opacity: 0;\n  padding-left: env(safe-area-inset-left, 0px);\n  padding-right: env(safe-area-inset-right, 0px);\n  padding-top: env(safe-area-inset-top, 0px);\n  padding-bottom: env(safe-area-inset-bottom, 0px);\n}\n/* ================= v1.2.0 \u8FFD\u52A0\uFF08C1-a \u4F1A\u8BDD\u680F / C1-b \u5E95\u90E8 Tab / C2-f \u66F4\u591A\u9875\u9762 / C1-c \u5DE5\u5177\u9875\uFF09 =================\n   \u5168\u90E8\u6302\u5728 .mo2-* \u81EA\u6709\u7C7B\u4E0A\uFF1A\u4E0D\u52A8\u5B98\u65B9\u7C7B\u540D\uFF08legacy.css \u9884\u7B97\u4ECD\u662F 3/6 \u6761\uFF09\uFF0C\n   \u4E5F\u4E0D\u6539\u5B98\u65B9\u8282\u70B9\u7684\u4EFB\u4F55\u5C5E\u6027 \u2014\u2014 \u8FD9\u662F\u300C\u5B98\u65B9\u63D2\u69FD + \u81EA\u6709 CSS\u300D\u8DEF\u7EBF\u7684\u5E95\u7EBF\u3002 */\n\n.mo2-tabs {\n  position: fixed;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  z-index: 900;\n  display: flex;\n  align-items: stretch;\n  height: 52px;\n  padding-bottom: env(safe-area-inset-bottom, 0px);\n  background: rgba(255, 255, 255, 0.96);\n  -webkit-backdrop-filter: blur(8px);\n  backdrop-filter: blur(8px);\n  border-top: 1px solid rgba(0, 0, 0, 0.08);\n}\n\n.mo2-tab {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  gap: 2px;\n  border: 0;\n  background: none;\n  padding: 0;\n  font-size: 11px;\n  color: #8c8c8c;\n  cursor: pointer;\n}\n\n.mo2-tab-on {\n  color: #1677ff;\n}\n\n.mo2-tab-ico {\n  font-size: 17px;\n  line-height: 1;\n}\n\n.mo2-session-body {\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  height: 100%;\n  overflow: auto;\n  -webkit-overflow-scrolling: touch;\n}\n\n.mo2-session-tools {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 2px 6px;\n  border-bottom: 1px solid rgba(0, 0, 0, 0.06);\n}\n\n.mo2-session-gtitle {\n  margin: 10px 4px 4px;\n  font-size: 12px;\n  color: #8c8c8c;\n}\n\n.mo2-session-item {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 8px;\n  min-height: 44px;\n  padding: 8px 10px;\n  border-radius: 8px;\n  background: rgba(0, 0, 0, 0.02);\n}\n\n.mo2-session-item:active {\n  background: rgba(0, 0, 0, 0.07);\n}\n\n.mo2-session-cur {\n  background: rgba(22, 119, 255, 0.08);\n}\n\n.mo2-session-name {\n  flex: 1;\n  min-width: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  font-size: 14px;\n}\n\n.mo2-session-side {\n  display: flex;\n  align-items: center;\n  gap: 4px;\n  flex: 0 0 auto;\n  font-size: 11px;\n  color: #8c8c8c;\n}\n\n.mo2-empty {\n  padding: 16px 6px;\n  font-size: 13px;\n  color: #8c8c8c;\n  text-align: center;\n}\n\n.mo2-tools {\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n  padding: 14px 14px calc(76px + env(safe-area-inset-bottom, 0px));\n}\n\n.mo2-tools-head {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n}\n\n.mo2-tools-title {\n  font-size: 18px;\n  font-weight: 600;\n}\n\n.mo2-tools-ver {\n  font-size: 12px;\n  color: #8c8c8c;\n}\n\n.mo2-tools-card {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n  padding: 10px 12px;\n  border: 1px solid rgba(0, 0, 0, 0.08);\n  border-radius: 10px;\n  background: rgba(0, 0, 0, 0.015);\n}\n\n.mo2-tools-line {\n  display: flex;\n  justify-content: space-between;\n  gap: 8px;\n  font-size: 12px;\n}\n\n.mo2-tools-k {\n  flex: 0 0 auto;\n  color: #8c8c8c;\n}\n\n.mo2-tools-v {\n  text-align: right;\n  word-break: break-all;\n}\n\n.mo2-bad {\n  color: #cf1322;\n}\n\n.mo2-tools-sec {\n  margin-top: 4px;\n  font-size: 12px;\n  color: #8c8c8c;\n}\n\n.mo2-tools-grid,\n.mo2-pages-grid {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr);\n  gap: 8px;\n  padding-bottom: 6px;\n}\n\n.mo2-tools-item,\n.mo2-pages-item {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  min-height: 62px;\n  padding: 8px 4px;\n  border: 1px solid rgba(0, 0, 0, 0.08);\n  border-radius: 10px;\n  background: none;\n  font-size: 12px;\n  color: inherit;\n}\n\n.mo2-tools-ico {\n  font-size: 18px;\n  line-height: 1;\n}\n\n.mo2-tools-actions {\n  display: flex;\n  gap: 8px;\n  flex-wrap: wrap;\n}\n\n.mo2-sheet-body {\n  max-height: min(62vh, calc(var(--mo2-vh, 100dvh) - var(--mo2-kbd, 0px) - 120px));\n  overflow: auto;\n  -webkit-overflow-scrolling: touch;\n}\n\n/* \u6DF1\u8272\uFF1A\u5B98\u65B9\u63A7\u5236\u53F0\u53EF\u8DDF\u968F\u7CFB\u7EDF\u6DF1\u8272\uFF0C\u786C\u767D\u5E95\u4F1A\u523A\u773C */\n@media (prefers-color-scheme: dark) {\n  .mo2-tabs {\n    background: rgba(20, 20, 22, 0.94);\n    border-top-color: rgba(255, 255, 255, 0.12);\n  }\n  .mo2-session-item {\n    background: rgba(255, 255, 255, 0.04);\n  }\n  .mo2-session-cur {\n    background: rgba(22, 119, 255, 0.16);\n  }\n  .mo2-tools-card,\n  .mo2-tools-item,\n  .mo2-pages-item {\n    border-color: rgba(255, 255, 255, 0.12);\n    background: rgba(255, 255, 255, 0.03);\n  }\n}';
 
 // src/styles/legacy.css
 var legacy_default = '/* legacy.css \u2014\u2014 \u5168\u4ED3\u552F\u4E00\u5141\u8BB8\u51FA\u73B0\u5B98\u65B9\u7C7B\u540D\u524D\u7F00\u7684\u6587\u4EF6\u3002\u89C4\u5219\u4E0A\u9650 6 \u6761\uFF0C\u6BCF\u6761\u5FC5\u987B\u5199\u660E\u7406\u7531\u3002\n   \u5931\u6548\u6A21\u5F0F\u88AB\u523B\u610F\u538B\u6210\u300C\u67D0\u4E2A\u6309\u94AE\u6CA1\u85CF\u4F4F\u300D\u8FD9\u79CD\u5916\u89C2\u7455\u75B5\uFF0C\u4E0D\u4F1A\u5D29\u3001\u4E0D\u4F1A\u9501\u4EA4\u4E92\u3002\n   \u9009\u62E9\u5668\u53EA\u7528 CSS Modules \u7684\u3010\u6A21\u5757\u540D\u7247\u6BB5\u3011\uFF08modeTrigger / ApprovalToggle-module__trigger \u2026\uFF09\uFF0C\n   \u5B83\u4EEC\u8DE8\u6784\u5EFA\u7A33\u5B9A\uFF0C\u53EA\u6709 __\u54C8\u5E0C \u540E\u7F00\u4F1A\u53D8\uFF1B\u4E0D\u7528 aria-label\uFF08\u4E2D\u6587\u6587\u6848\uFF0Ci18n \u4E00\u53D8\u5C31\u5931\u6548\uFF09\u3002 */\n\n@media (max-width: 768px) {\n  /* \u89C4\u5219 1\uFF1A\u8F93\u5165\u6846\u4E0B\u65B9\u53EA\u7559 \u9EA6\u514B\u98CE/\u9644\u4EF6/\u4E0A\u4E0B\u6587\u7528\u91CF/\u53D1\u9001 \u2014\u2014 Loop\u3001\u5BA1\u6279\u3001\u9879\u76EE\u76EE\u5F55\u6536\u8FDB\u529F\u80FD\u9762\u677F\u3002\n     \u6CE8\u610F\uFF1A\u4E0D\u7528 display:none\uFF01display:none \u4F1A\u8BA9\u5143\u7D20\u5931\u53BB\u76D2\u5B50\uFF0C\u5B98\u65B9\u5F39\u5C42\u6309 getBoundingClientRect\n     \u5B9A\u4F4D\u65F6\u4F1A\u9000\u5316\u5230 (0,0) \u800C\u6574\u5C42\u98DE\u51FA\u5C4F\u5E55\uFF08v0.1.78 \u8E29\u8FC7\uFF09\u3002\u8FD9\u91CC\u628A\u76D2\u5B50\u538B\u6210 0 \u5BBD\u4F46\u4FDD\u7559\u4F4D\u7F6E\uFF0C\n     \u5F39\u5C42\u4ECD\u7136\u951A\u5728\u8F93\u5165\u6846\u90A3\u4E00\u884C\u7684\u539F\u4F4D\uFF0C\u843D\u5728\u5C4F\u5185\u3002 */\n  [class*="modeTrigger"],\n  [class*="ApprovalToggle-module__trigger"],\n  [class*="SessionProjectDirectory-module__trigger"] {\n    width: 0 !important;\n    min-width: 0 !important;\n    max-width: 0 !important;\n    padding: 0 !important;\n    margin: 0 !important;\n    border: 0 !important;\n    overflow: hidden !important;\n    font-size: 0 !important;\n    color: transparent !important;\n  }\n\n  /* \u89C4\u5219 2\uFF1A\u4E0A\u6761\u538B\u6241\u540E\u5B98\u65B9\u90A3\u7EC4\u6309\u94AE\u7684 gap \u4F1A\u7559\u4E0B\u7A7A\u9699\uFF0C\u6536\u7D27\u4E00\u6B21 */\n  [class*="mobileComposerControl"] {\n    gap: 0 !important;\n  }\n\n\n  /* \u89C4\u5219 3\uFF08\u6536\u5C3E\u65F6\u5355\u72EC\u6458\u56DE\uFF09\uFF1AiOS \u952E\u76D8\u5F39\u8D77\u65F6\u62AC\u5347\u8F93\u5165\u533A\u3002\n     Safari \u4E0D\u652F\u6301 interactive-widget=resizes-content\uFF0C\u952E\u76D8\u53EA\u7F29 visualViewport\u3001\u5E03\u5C40\u89C6\u53E3\u4E0D\u52A8\uFF0C\n     \u6240\u4EE5\u5FC5\u987B\u81EA\u5DF1\u62AC\uFF1B\u7528 transform \u800C\u975E\u6539 height/margin\uFF0C\u907F\u514D\u6574\u9875\u91CD\u6392\u3002\n     --mo2-kbd \u7531 src/env/viewport.js \u5199\u5728 :root \u4E0A\uFF0C\u4E0D\u78B0\u5B98\u65B9\u8282\u70B9\u7684\u5185\u8054\u6837\u5F0F\u3002 */\n  [class*="sender"] {\n    transform: translateY(calc(-1 * var(--mo2-kbd, 0px)));\n  }\n}\n';
@@ -362,10 +363,15 @@ function stop() {
 
 // src/legacy/click.js
 var SIGNALS = {
-  newChat: [{ cls: "newChat" }, { aria: "\u65B0\u5EFA\u4EFB\u52A1" }, { aria: "New task" }],
-  workspace: [{ cls: "SessionProjectDirectory-module__trigger" }, { aria: "\u5F53\u524D\u4F1A\u8BDD\u9879\u76EE\u76EE\u5F55" }],
-  loopMode: [{ cls: "modeTrigger" }, { aria: "\u9009\u62E9 Loop \u6A21\u5F0F" }],
-  approval: [{ cls: "ApprovalToggle-module__trigger" }, { aria: "\u5DE5\u5177\u5BA1\u6279\u6A21\u5F0F" }]
+  newChat: [{ cls: "newChat" }, { cls: "newChat-module" }, { aria: "\u65B0\u5EFA\u4EFB\u52A1" }, { aria: "New task" }, { aria: "New chat" }],
+  workspace: [
+    { cls: "SessionProjectDirectory-module__trigger" },
+    { cls: "ProjectDirectory" },
+    { aria: "\u5F53\u524D\u4F1A\u8BDD\u9879\u76EE\u76EE\u5F55" },
+    { aria: "\u9879\u76EE\u76EE\u5F55" }
+  ],
+  loopMode: [{ cls: "modeTrigger" }, { cls: "loopTrigger" }, { aria: "\u9009\u62E9 Loop \u6A21\u5F0F" }, { aria: "Loop" }],
+  approval: [{ cls: "ApprovalToggle-module__trigger" }, { cls: "ApprovalToggle" }, { aria: "\u5DE5\u5177\u5BA1\u6279\u6A21\u5F0F" }, { aria: "\u5BA1\u6279\u6A21\u5F0F" }]
 };
 function firstVisible(sel) {
   var els;
@@ -386,9 +392,17 @@ function findOfficial(key) {
   for (var i = 0; i < sig.length; i++) {
     var sel = sig[i].aria ? '[aria-label="' + sig[i].aria + '"]' : '[class*="' + sig[i].cls + '"]';
     var el = firstVisible(sel);
-    if (el) return { el, via: sig[i].aria ? "aria" : "cls", sel };
+    if (el) return { el, via: sig[i].aria ? "aria" : "cls", sel, depth: i, weak: i > 0 };
   }
   return null;
+}
+function signalsReport() {
+  var out = {};
+  Object.keys(SIGNALS).forEach(function(k) {
+    var hit = findOfficial(k);
+    out[k] = hit ? { found: true, via: hit.via, depth: hit.depth, sel: hit.sel, weak: hit.weak } : { found: false, via: "none", depth: -1, sel: "", weak: true };
+  });
+  return out;
 }
 function clickOfficial(key) {
   var hit = findOfficial(key);
@@ -650,6 +664,64 @@ function collect(safeProbeEl, extra) {
     }).join(",")),
     avOk.length > 0 && avOk.length < avKeys.length
   );
+  var meta = window.__mo2 || {};
+  var dr = meta.drift || {};
+  push(
+    "\u3251 bundle \u6307\u7EB9\u5DF2\u77E5\uFF08\u6F02\u79FB\u76D1\u6D4B\uFF09",
+    !!dr.known,
+    (dr.bundle || "?") + (dr.known ? "" : " \u2190 \u672A\u77E5\u6307\u7EB9\uFF0C\u53BB\u8DD1 scripts/drift-check.py"),
+    !dr.known
+  );
+  var cp = meta.compat || {};
+  push(
+    "\u3252 \u5E73\u53F0\u7248\u672C\u5728\u5B9E\u6D4B\u533A\u95F4",
+    cp.ok === true,
+    (cp.version || "\u8BFB\u53D6\u4E2D\u2026") + " \u2208 [" + (cp.min || "?") + ", " + (cp.max || "?") + "]" + (cp.ok === false ? " \u2190 " + (cp.err || "") : ""),
+    cp.ok === void 0 || cp.ok === false
+  );
+  var dbtn = document.querySelector('[aria-label="mo2-\u4F1A\u8BDD\u680F"]');
+  var drect = dbtn ? dbtn.getBoundingClientRect() : null;
+  push(
+    "\u3253 \u4F1A\u8BDD\u680F\u5165\u53E3\u5728\u4F4D\uFF08\u9876\u680F\uFF09",
+    !!(drect && drect.width > 0 && drect.height > 0),
+    drect ? Math.round(drect.x) + "," + Math.round(drect.y) + " " + Math.round(drect.width) + "x" + Math.round(drect.height) : "\u672A\u627E\u5230"
+  );
+  var tabsEL = document.querySelector(".mo2-tabs");
+  var trect = tabsEL ? tabsEL.getBoundingClientRect() : null;
+  var onChat = /^\/($|chat(\/|$))/.test(location.pathname);
+  var tabsIn = onChat ? !tabsEL : !!(trect && trect.bottom <= window.innerHeight + 1 && trect.height > 0);
+  push(
+    "\u3254 \u5E95\u90E8 Tab \u680F\uFF08\u975E\u804A\u5929\u9875\u5728\u5C4F\u5185 / \u804A\u5929\u9875\u8BA9\u4F4D\uFF09",
+    tabsIn,
+    onChat ? tabsEL ? "\u804A\u5929\u9875\u7ADF\u7136\u51FA\u73B0\u4E86\u5E95\u680F\uFF08\u4F1A\u538B\u8F93\u5165\u6846\uFF09" : "\u804A\u5929\u9875\u5DF2\u8BA9\u4F4D \u2713" : trect ? tabsEL.children.length + " \u9879 \xB7 y=" + Math.round(trect.y) + " h=" + Math.round(trect.height) : "\u672A\u627E\u5230"
+  );
+  var it = meta.integration || {};
+  push(
+    "\u3255 \u5B98\u65B9\u83DC\u5355\u5165\u53E3\u5DF2\u6CE8\u518C\uFF08C1-c\uFF09",
+    it.menu === "ok" && (it.entries || []).length >= 1,
+    "route=" + (it.route || "?") + " \xB7 menu=" + (it.menu || "?") + " \xB7 " + (it.entries || []).length + " \u6761",
+    it.route !== "ok" || it.menu !== "ok"
+  );
+  var rep = {};
+  try {
+    rep = signalsReport();
+  } catch (e) {
+  }
+  var keys = Object.keys(rep);
+  var bad = keys.filter(function(k) {
+    return !rep[k].found;
+  });
+  var weak = keys.filter(function(k) {
+    return rep[k].found && rep[k].weak;
+  });
+  push(
+    "\u3256 \u5408\u6210\u70B9\u51FB\u4FE1\u53F7\u672A\u6F02\u79FB\uFF08C3-g\uFF09",
+    keys.length > 0 && bad.length === 0 && weak.length === 0,
+    bad.length ? "\u7F3A:" + bad.join(",") : weak.length ? "\u5403\u515C\u5E95:" + weak.map(function(k) {
+      return k + "#" + rep[k].depth;
+    }).join(",") : keys.length + " \u6761\u5168\u8D70\u9996\u9009\u4FE1\u53F7",
+    bad.length > 0 || weak.length > 0
+  );
   return items;
 }
 function SelfTest(props) {
@@ -783,7 +855,7 @@ function startModelPopupGuard() {
 }
 
 // src/state.js
-var _s = { sheet: false, modelView: false };
+var _s = { sheet: false, modelView: false, drawer: false, pagesView: false };
 var _subs = /* @__PURE__ */ new Set();
 function get() {
   return _s;
@@ -805,6 +877,9 @@ function subscribe(fn) {
 }
 function toggleSheet(v) {
   set({ sheet: typeof v === "boolean" ? v : !_s.sheet });
+}
+function toggleDrawer(v) {
+  set({ drawer: typeof v === "boolean" ? v : !_s.drawer });
 }
 function useAppState() {
   var R = window.QwenPaw.host.React;
@@ -858,7 +933,21 @@ function TopBar() {
   }
   var Plus = I.PlusOutlined;
   var Grid = I.AppstoreOutlined;
-  return /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-topbar" }, A.Tooltip ? /* @__PURE__ */ window.QwenPaw.host.React.createElement(A.Tooltip, { title: "\u65B0\u5EFA\u5BF9\u8BDD" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement(
+  var List = I.UnorderedListOutlined;
+  return /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-topbar" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement(
+    A.Button,
+    {
+      size: "small",
+      type: "text",
+      shape: "circle",
+      "aria-label": "mo2-\u4F1A\u8BDD\u680F",
+      className: st.drawer ? "mo2-topbar-on" : "",
+      icon: List ? /* @__PURE__ */ window.QwenPaw.host.React.createElement(List, null) : "\u2630",
+      onClick: function() {
+        toggleDrawer();
+      }
+    }
+  ), A.Tooltip ? /* @__PURE__ */ window.QwenPaw.host.React.createElement(A.Tooltip, { title: "\u65B0\u5EFA\u5BF9\u8BDD" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement(
     A.Button,
     {
       size: "small",
@@ -883,6 +972,22 @@ function TopBar() {
     }
   ));
 }
+
+// src/api/pages.js
+var PAGES = [
+  { key: "sessions", label: "\u4F1A\u8BDD", path: "/sessions", icon: "MessageOutlined" },
+  { key: "token-usage", label: "Token \u6D88\u8017", path: "/token-usage", icon: "BarChartOutlined" },
+  { key: "files", label: "\u6587\u4EF6", path: "/files", icon: "FolderOpenOutlined" },
+  { key: "skills", label: "\u6280\u80FD", path: "/skills", icon: "ThunderboltOutlined" },
+  { key: "mcp", label: "MCP", path: "/mcp", icon: "ApiOutlined" },
+  { key: "checkpoints", label: "\u68C0\u67E5\u70B9", path: "/checkpoints", icon: "HistoryOutlined" },
+  { key: "cron-jobs", label: "\u5B9A\u65F6\u4EFB\u52A1", path: "/cron-jobs", icon: "ClockCircleOutlined" },
+  { key: "agents", label: "\u667A\u80FD\u4F53", path: "/agents", icon: "TeamOutlined" },
+  { key: "security", label: "\u5B89\u5168", path: "/security", icon: "SafetyCertificateOutlined" },
+  { key: "backups", label: "\u5907\u4EFD", path: "/backups", icon: "CloudDownloadOutlined" },
+  { key: "environments", label: "\u73AF\u5883\u53D8\u91CF", path: "/environments", icon: "SettingOutlined" },
+  { key: "debug", label: "\u8C03\u8BD5", path: "/debug", icon: "BugOutlined" }
+];
 
 // src/ui/FeatureSheet.jsx
 function FeatureSheet() {
@@ -927,12 +1032,12 @@ function FeatureSheet() {
     });
   }
   function onPick(val) {
-    var parts = String(val).split("::");
-    if (parts.length < 2) return;
+    var parts2 = String(val).split("::");
+    if (parts2.length < 2) return;
     setBusy(true);
-    setActive(parts[0], parts[1]).then(function() {
-      setActiveInfo({ provider_id: parts[0], model: parts[1] });
-      toast("\u5DF2\u5207\u6362\u5230 " + parts[1]);
+    setActive(parts2[0], parts2[1]).then(function() {
+      setActiveInfo({ provider_id: parts2[0], model: parts2[1] });
+      toast("\u5DF2\u5207\u6362\u5230 " + parts2[1]);
     }).catch(function(e) {
       toast("\u5207\u6362\u5931\u8D25\uFF1A" + (e && e.message || e), "error");
     }).finally(function() {
@@ -941,7 +1046,7 @@ function FeatureSheet() {
   }
   function close() {
     toggleSheet(false);
-    set({ modelView: false });
+    set({ modelView: false, pagesView: false });
   }
   function composerEntry(key) {
     var r = clickOfficial(key);
@@ -1018,6 +1123,35 @@ function FeatureSheet() {
   items.push(composerItem("workspace", "\u6253\u5F00\u6587\u4EF6\u5DE5\u4F5C\u533A", I.FolderOpenOutlined));
   items.push(composerItem("loopMode", "Loop \u6A21\u5F0F", I.SyncOutlined));
   items.push(composerItem("approval", "\u5DE5\u5177\u5BA1\u6279\u6A21\u5F0F", I.SafetyCertificateOutlined));
+  items.push({
+    key: "sessions",
+    label: "\u4F1A\u8BDD\u5217\u8868",
+    sub: "\u81EA\u7ED8\u4FA7\u680F \xB7 \u5DE6\u53F3\u6ED1\u624B\u52BF\u4E5F\u80FD\u5F00",
+    icon: I.UnorderedListOutlined,
+    run: function() {
+      close();
+      toggleDrawer(true);
+    }
+  });
+  items.push({
+    key: "toolsPage",
+    label: "\u79FB\u52A8\u7AEF\u5DE5\u5177",
+    sub: "/mo2",
+    icon: I.AppstoreOutlined,
+    run: function() {
+      close();
+      navigate("/mo2");
+    }
+  });
+  items.push({
+    key: "more",
+    label: "\u66F4\u591A\u5B98\u65B9\u9875\u9762",
+    sub: PAGES.length + " \u4E2A\u5165\u53E3",
+    icon: I.MoreOutlined,
+    run: function() {
+      set({ pagesView: true });
+    }
+  });
   if (!isChatRoute2()) {
     items.push({
       key: "back",
@@ -1046,7 +1180,36 @@ function FeatureSheet() {
     }
     return list;
   }
-  var body = st.modelView ? /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-sheet-body" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-sheet-head" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement(
+  var pagesBody = /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-sheet-body" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-sheet-head" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement(
+    A.Button,
+    {
+      size: "small",
+      type: "text",
+      "aria-label": "mo2-\u8FD4\u56DE\u6761\u76EE",
+      icon: Back ? /* @__PURE__ */ window.QwenPaw.host.React.createElement(Back, null) : "\u2190",
+      onClick: function() {
+        set({ pagesView: false });
+      }
+    }
+  ), /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-sheet-title" }, "\u66F4\u591A\u5B98\u65B9\u9875\u9762")), /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-pages-grid" }, PAGES.map(function(p) {
+    var Ic = I[p.icon];
+    return /* @__PURE__ */ window.QwenPaw.host.React.createElement(
+      "button",
+      {
+        key: p.key,
+        type: "button",
+        className: "mo2-pages-item",
+        "aria-label": "mo2-page-" + p.key,
+        onClick: function() {
+          close();
+          navigate(p.path);
+        }
+      },
+      /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tools-ico" }, Ic ? /* @__PURE__ */ window.QwenPaw.host.React.createElement(Ic, null) : "\xB7"),
+      /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tools-label" }, p.label)
+    );
+  })));
+  var body = st.pagesView ? pagesBody : st.modelView ? /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-sheet-body" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-sheet-head" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement(
     A.Button,
     {
       size: "small",
@@ -1114,6 +1277,391 @@ function FeatureSheet() {
   );
 }
 
+// src/ui/BottomTabs.jsx
+var TABS = [
+  { key: "chat", label: "\u804A\u5929", path: "/chat", icon: "MessageOutlined" },
+  { key: "models", label: "\u6A21\u578B", path: "/models", icon: "RobotOutlined" },
+  { key: "settings", label: "\u8BBE\u7F6E", path: "/settings", icon: "SettingOutlined" }
+];
+function isHere(pathname, tab) {
+  if (tab.key === "chat") return pathname === "/" || /^\/chat(\/|$)/.test(pathname);
+  return pathname === tab.path || pathname.indexOf(tab.path + "/") === 0;
+}
+function BottomTabs() {
+  var A = antd();
+  var I = icons();
+  var here = currentPath();
+  if (isChatRoute()) return null;
+  return /* @__PURE__ */ window.QwenPaw.host.React.createElement("nav", { className: "mo2-tabs", "aria-label": "mo2-\u5E95\u90E8\u5BFC\u822A" }, TABS.map(function(t) {
+    var Ic = I[t.icon];
+    var on = isHere(here, t);
+    return /* @__PURE__ */ window.QwenPaw.host.React.createElement(
+      "button",
+      {
+        key: t.key,
+        type: "button",
+        className: "mo2-tab" + (on ? " mo2-tab-on" : ""),
+        "aria-label": "mo2-tab-" + t.key,
+        "aria-current": on ? "page" : void 0,
+        onClick: function() {
+          navigate(t.path);
+        }
+      },
+      /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tab-ico" }, Ic ? /* @__PURE__ */ window.QwenPaw.host.React.createElement(Ic, null) : "\xB7"),
+      /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tab-label" }, t.label)
+    );
+  }));
+}
+
+// src/api/chats.js
+function pickName(c) {
+  var n = c && (c.name || c.title || c.summary);
+  if (typeof n === "string" && n.trim()) return n.trim();
+  return "\u672A\u547D\u540D\u4F1A\u8BDD";
+}
+function norm(c) {
+  if (!c || typeof c !== "object") return null;
+  var id = c.id || c.chat_id || c.session_id || "";
+  if (!id) return null;
+  return {
+    id: String(id),
+    name: pickName(c),
+    updated: c.updated_at || c.created_at || "",
+    pinned: !!c.pinned,
+    archived: !!c.archived_at,
+    source: c.source || ""
+  };
+}
+async function listChats() {
+  var r = await api("/chats");
+  if (!r.ok) throw new Error("GET /chats \u2192 " + r.status);
+  var j = await r.json();
+  var arr = Array.isArray(j) ? j : j && (j.chats || j.items || j.sessions) || [];
+  return arr.map(norm).filter(function(c) {
+    return !!c && !c.archived;
+  });
+}
+function ts(c) {
+  var t = Date.parse(c.updated);
+  return isNaN(t) ? 0 : t;
+}
+function sortChats(list) {
+  return (list || []).slice().sort(function(a, b) {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+    return ts(b) - ts(a);
+  });
+}
+function groupChats(list) {
+  var now = Date.now();
+  var week = 7 * 24 * 3600 * 1e3;
+  var g = { pinned: [], recent: [], older: [] };
+  sortChats(list).forEach(function(c) {
+    if (c.pinned) g.pinned.push(c);
+    else if (ts(c) && now - ts(c) < week) g.recent.push(c);
+    else g.older.push(c);
+  });
+  var out = [];
+  if (g.pinned.length) out.push({ title: "\u7F6E\u9876", items: g.pinned });
+  if (g.recent.length) out.push({ title: "\u6700\u8FD1 7 \u5929", items: g.recent });
+  if (g.older.length) out.push({ title: "\u66F4\u65E9", items: g.older });
+  return out;
+}
+function relTime(iso) {
+  var t = Date.parse(iso);
+  if (isNaN(t)) return "";
+  var d = Date.now() - t;
+  if (d < 6e4) return "\u521A\u521A";
+  if (d < 36e5) return Math.floor(d / 6e4) + " \u5206\u949F\u524D";
+  if (d < 864e5) return Math.floor(d / 36e5) + " \u5C0F\u65F6\u524D";
+  if (d < 7 * 864e5) return Math.floor(d / 864e5) + " \u5929\u524D";
+  var dt = new Date(t);
+  return dt.getFullYear() + "-" + ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + ("0" + dt.getDate()).slice(-2);
+}
+
+// src/ui/SessionDrawer.jsx
+function SessionDrawer() {
+  var R = window.QwenPaw.host.React;
+  var A = antd();
+  var I = icons();
+  var st = useAppState();
+  var _s2 = R.useState({ loading: false, err: "", groups: [], n: 0 }), snap = _s2[0], setSnap = _s2[1];
+  function load() {
+    setSnap(function(p) {
+      return Object.assign({}, p, { loading: true, err: "" });
+    });
+    listChats().then(function(list) {
+      setSnap({ loading: false, err: "", groups: groupChats(list), n: list.length });
+    }).catch(function(e) {
+      setSnap({ loading: false, err: String(e && e.message || e), groups: [], n: 0 });
+    });
+  }
+  R.useEffect(
+    function() {
+      if (st.drawer) load();
+    },
+    [st.drawer]
+  );
+  function close() {
+    set({ drawer: false });
+  }
+  function openChat(c) {
+    close();
+    navigate("/chat/" + c.id);
+  }
+  var cur = currentPath();
+  var curId = cur.replace(/^\/chat\//, "");
+  function row(c) {
+    var Star = I.PushpinOutlined || I.StarOutlined;
+    return /* @__PURE__ */ window.QwenPaw.host.React.createElement(
+      "div",
+      {
+        key: c.id,
+        className: "mo2-session-item" + (c.id === curId ? " mo2-session-cur" : ""),
+        "data-chat": c.id,
+        role: "button",
+        onClick: function() {
+          openChat(c);
+        }
+      },
+      /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-session-name" }, c.name),
+      /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-session-side" }, c.pinned && Star ? /* @__PURE__ */ window.QwenPaw.host.React.createElement(Star, null) : null, /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-session-time" }, relTime(c.updated)))
+    );
+  }
+  var body = /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-session-body" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-session-tools" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement(A.Button, { size: "small", type: "text", "aria-label": "mo2-\u4F1A\u8BDD\u5237\u65B0", onClick: load, loading: snap.loading }, "\u5237\u65B0"), /* @__PURE__ */ window.QwenPaw.host.React.createElement(
+    A.Button,
+    {
+      size: "small",
+      type: "link",
+      "aria-label": "mo2-\u65B0\u5EFA\u4F1A\u8BDD",
+      onClick: function() {
+        close();
+        navigate("/");
+      }
+    },
+    "+ \u65B0\u5EFA\u4F1A\u8BDD"
+  )), snap.err ? /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-err" }, "\u4F1A\u8BDD\u5217\u8868\u8BFB\u53D6\u5931\u8D25\uFF1A", snap.err) : null, !snap.err && !snap.loading && snap.n === 0 ? /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-empty" }, "\u8FD8\u6CA1\u6709\u4F1A\u8BDD") : null, (snap.groups || []).map(function(g) {
+    return /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { key: g.title, className: "mo2-session-group" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-session-gtitle" }, g.title), g.items.map(row));
+  }));
+  if (!A || !A.Drawer) return null;
+  return /* @__PURE__ */ window.QwenPaw.host.React.createElement(
+    A.Drawer,
+    {
+      title: "\u4F1A\u8BDD",
+      placement: "left",
+      open: !!st.drawer,
+      onClose: close,
+      width: "78%",
+      rootClassName: "mo2-session-root",
+      className: "mo2-session-drawer",
+      destroyOnClose: true,
+      styles: { body: { padding: "6px 10px 18px" } },
+      getContainer: false
+    },
+    body
+  );
+}
+
+// src/env/drift.js
+var KNOWN_BUNDLES = ["index-8OrhnpZF.js", "index-BpFaGbCq.js"];
+var TESTED_MAX = "2.2.2.post1";
+var TESTED_MIN = "2.2.0";
+function fingerprint() {
+  try {
+    var els = document.querySelectorAll('link[href*="assets/index-"], script[src*="assets/index-"]');
+    for (var i = 0; i < els.length; i++) {
+      var h = els[i].getAttribute("href") || els[i].getAttribute("src") || "";
+      var m = /index-[A-Za-z0-9_-]+\.js/.exec(h);
+      if (m) return m[0];
+    }
+  } catch (e) {
+  }
+  return "\u672A\u77E5";
+}
+function bundleCheck() {
+  var name = fingerprint();
+  var known = KNOWN_BUNDLES.indexOf(name) >= 0;
+  return {
+    bundle: name,
+    known,
+    unknown: !known && name !== "\u672A\u77E5",
+    hint: known ? "" : "\u5B98\u65B9 bundle \u6307\u7EB9\u672A\u77E5 \u2192 \u63D2\u69FD/\u4FE1\u53F7\u5047\u8BBE\u9700\u590D\u6838\uFF08\u8DD1 scripts/drift-check.py\uFF09"
+  };
+}
+function parts(v) {
+  var m = /^(\d+)\.(\d+)\.(\d+)(?:\.?(?:post|rc|a|b)(\d+))?/.exec(String(v || ""));
+  if (!m) return null;
+  return [+m[1], +m[2], +m[3], m[4] ? +m[4] : 0, /post/.test(String(v)) ? 1 : 0];
+}
+function cmp(a, b) {
+  var x = parts(a);
+  var y = parts(b);
+  if (!x || !y) return 0;
+  for (var i = 0; i < x.length; i++) {
+    if (x[i] !== y[i]) return x[i] > y[i] ? 1 : -1;
+  }
+  return 0;
+}
+async function platformVersion() {
+  try {
+    var r = await fetch("/api/version");
+    if (!r.ok) return null;
+    var j = await r.json();
+    return j && (j.version || j.qwenpaw_version || j.data && j.data.version) || null;
+  } catch (e) {
+    return null;
+  }
+}
+async function compat() {
+  var v = await platformVersion();
+  if (!v) return { version: null, min: TESTED_MIN, max: TESTED_MAX, ok: false, err: "/api/version \u4E0D\u53EF\u8BFB" };
+  var okMin = cmp(v, TESTED_MIN) >= 0;
+  var okMax = cmp(v, TESTED_MAX) <= 0;
+  return {
+    version: v,
+    min: TESTED_MIN,
+    max: TESTED_MAX,
+    ok: okMin && okMax,
+    err: okMin && okMax ? "" : "\u5E73\u53F0\u7248\u672C\u8D85\u51FA\u5B9E\u6D4B\u533A\u95F4\uFF08\u5B9E\u6D4B " + TESTED_MIN + " ~ " + TESTED_MAX + "\uFF09"
+  };
+}
+
+// src/ui/ToolsPage.jsx
+function ToolsPage() {
+  var R = window.QwenPaw.host.React;
+  var A = antd();
+  var I = icons();
+  var _c = R.useState({ version: null, min: "", max: "", ok: null, err: "\u8BFB\u53D6\u4E2D\u2026" }), cp = _c[0], setCp = _c[1];
+  var bp = bundleCheck();
+  var agent = "";
+  try {
+    var h = host();
+    agent = typeof h.getSelectedAgentId === "function" ? String(h.getSelectedAgentId() || "") : "";
+  } catch (e) {
+  }
+  R.useEffect(function() {
+    var stop2 = false;
+    compat().then(function(r) {
+      if (!stop2) setCp(r);
+    });
+    return function() {
+      stop2 = true;
+    };
+  }, []);
+  return /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-tools" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-tools-head" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tools-title" }, "\u79FB\u52A8\u7AEF\u5DE5\u5177"), /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tools-ver" }, "v", VERSION)), /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-tools-card" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-tools-line" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tools-k" }, "\u5B98\u65B9 bundle"), /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tools-v" + (bp.known ? "" : " mo2-bad") }, bp.bundle, bp.known ? "" : "\uFF08\u672A\u77E5\u6307\u7EB9\uFF0C\u9700\u590D\u6838\uFF09")), /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-tools-line" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tools-k" }, "\u5E73\u53F0\u7248\u672C"), /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tools-v" + (cp.ok === false ? " mo2-bad" : "") }, cp.version || "\u2014", " \xB7 \u5B9E\u6D4B\u533A\u95F4 ", cp.min, "~", cp.max, cp.ok === false ? "\uFF08\u8D8A\u754C\uFF09" : "")), agent ? /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-tools-line" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tools-k" }, "\u5F53\u524D\u667A\u80FD\u4F53"), /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tools-v" }, agent)) : null), /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-tools-sec" }, "\u5B98\u65B9\u9875\u9762"), /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-tools-grid" }, PAGES.map(function(p) {
+    var Ic = I[p.icon];
+    return /* @__PURE__ */ window.QwenPaw.host.React.createElement(
+      "button",
+      {
+        key: p.key,
+        type: "button",
+        className: "mo2-tools-item",
+        "aria-label": "mo2-page-" + p.key,
+        onClick: function() {
+          navigate(p.path);
+        }
+      },
+      /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tools-ico" }, Ic ? /* @__PURE__ */ window.QwenPaw.host.React.createElement(Ic, null) : "\xB7"),
+      /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tools-label" }, p.label)
+    );
+  })), /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-tools-sec" }, "\u5FEB\u6377\u64CD\u4F5C"), /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-tools-actions" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement(A.Button, { size: "small", onClick: function() {
+    set({ drawer: true });
+  } }, "\u4F1A\u8BDD\u5217\u8868"), /* @__PURE__ */ window.QwenPaw.host.React.createElement(A.Button, { size: "small", onClick: function() {
+    set({ sheet: true });
+  } }, "\u529F\u80FD\u9762\u677F"), /* @__PURE__ */ window.QwenPaw.host.React.createElement(A.Button, { size: "small", onClick: function() {
+    navigate("/chat");
+  } }, "\u56DE\u804A\u5929")));
+}
+
+// src/env/gesture.js
+var EDGE_RATIO = 0.24;
+var THRESHOLD = 90;
+var GHOST_MS = 400;
+function startGestures(io) {
+  var track = null;
+  var ghostUntil = 0;
+  var listeners2 = [];
+  function scrollableX(el) {
+    try {
+      for (var n = el; n && n !== document.body && n !== document.documentElement; n = n.parentElement) {
+        var cs = getComputedStyle(n);
+        if (/auto|scroll/.test(cs.overflowX) && n.scrollWidth > n.clientWidth + 4) return true;
+      }
+    } catch (e) {
+    }
+    return false;
+  }
+  function fire(mode) {
+    track = null;
+    ghostUntil = Date.now() + GHOST_MS;
+    try {
+      if (mode === "open") io.open();
+      else io.close();
+    } catch (e) {
+    }
+  }
+  function onDown(e) {
+    if (e.pointerType === "mouse" && e.button !== 0) {
+      track = null;
+      return;
+    }
+    var open = false;
+    try {
+      open = !!io.isOpen();
+    } catch (e2) {
+    }
+    if (open) {
+      track = { x: e.clientX || 0, y: e.clientY || 0, mode: "close" };
+      return;
+    }
+    var x = e.clientX || 0;
+    if (x > window.innerWidth * EDGE_RATIO || scrollableX(e.target)) {
+      track = null;
+      return;
+    }
+    track = { x, y: e.clientY || 0, mode: "open" };
+  }
+  function onMove(e) {
+    if (!track) return;
+    var dx = (e.clientX || 0) - track.x;
+    var dy = Math.abs((e.clientY || 0) - track.y);
+    if (Math.abs(dx) < dy * 1.2) return;
+    if (track.mode === "open" && dx >= THRESHOLD) fire("open");
+    else if (track.mode === "close" && dx <= -THRESHOLD) fire("close");
+  }
+  function onUp() {
+    track = null;
+  }
+  function onClickCapture(e) {
+    if (Date.now() < ghostUntil) {
+      try {
+        e.stopPropagation();
+        e.preventDefault();
+      } catch (e2) {
+      }
+    }
+  }
+  function add(t, ev, fn, opt) {
+    t.addEventListener(ev, fn, opt);
+    listeners2.push([t, ev, fn, opt]);
+  }
+  add(document, "pointerdown", onDown, { passive: true });
+  add(document, "pointermove", onMove, { passive: true });
+  add(document, "pointerup", onUp, { passive: true });
+  add(document, "pointercancel", onUp, { passive: true });
+  add(document, "touchcancel", onUp, { passive: true });
+  add(document, "click", onClickCapture, true);
+  return function stop2() {
+    listeners2.forEach(function(x) {
+      try {
+        x[0].removeEventListener(x[1], x[2], x[3]);
+      } catch (e) {
+      }
+    });
+    listeners2 = [];
+    track = null;
+  };
+}
+
 // src/index.js
 function fillChrome(name, el) {
   try {
@@ -1126,10 +1674,11 @@ function fillChrome(name, el) {
   }
 }
 function registerChrome(info) {
-  var React = window.QwenPaw.host.React;
   var list = [
     fillChrome("header.right", /* @__PURE__ */ window.QwenPaw.host.React.createElement(TopBar, null)),
-    fillChrome("overlay.global", /* @__PURE__ */ window.QwenPaw.host.React.createElement(FeatureSheet, null))
+    fillChrome("overlay.global", /* @__PURE__ */ window.QwenPaw.host.React.createElement(FeatureSheet, null)),
+    fillChrome("overlay.global", /* @__PURE__ */ window.QwenPaw.host.React.createElement(BottomTabs, null)),
+    fillChrome("overlay.global", /* @__PURE__ */ window.QwenPaw.host.React.createElement(SessionDrawer, null))
   ];
   info.chrome = list.map(function(r) {
     return { name: r.name, ok: r.ok, error: r.error || "" };
@@ -1144,6 +1693,43 @@ function registerChrome(info) {
   return list.every(function(r) {
     return r.ok;
   });
+}
+function registerIntegration(info) {
+  var qw = window.QwenPaw || {};
+  var out = { route: "skip", menu: "skip", entries: [] };
+  if (qw.route && typeof qw.route.add === "function") {
+    try {
+      qw.route.add(PLUGIN_ID, { id: PLUGIN_ID + ".tools", path: "/mo2", component: ToolsPage });
+      out.route = "ok";
+    } catch (e) {
+      out.route = "error: " + (e && e.message || e);
+    }
+  } else {
+    out.route = "no route.add";
+  }
+  if (out.route !== "ok") {
+    out.menu = "skipped\uFF08\u8DEF\u7531\u6CA1\u6CE8\u518C\uFF0C\u4E0D\u7ED9\u6B7B\u94FE\uFF09";
+    return out;
+  }
+  if (!qw.menu || typeof qw.menu.add !== "function") {
+    out.menu = "no menu.add";
+    return out;
+  }
+  var items = [
+    { id: PLUGIN_ID + ".tools.agent", label: "\u79FB\u52A8\u7AEF\u5DE5\u5177", location: "primary.agentScoped", route: PLUGIN_ID + ".tools", order: 90 },
+    { id: PLUGIN_ID + ".tools.settings", label: "\u79FB\u52A8\u7AEF\u4F18\u5316", location: "primary.settings", route: PLUGIN_ID + ".tools", order: 90 },
+    { id: PLUGIN_ID + ".tools.user", label: "\u79FB\u52A8\u7AEF\u5DE5\u5177", location: "userMenu", route: PLUGIN_ID + ".tools", order: 90 }
+  ];
+  try {
+    qw.menu.add(PLUGIN_ID, items);
+    out.menu = "ok";
+    out.entries = items.map(function(i) {
+      return i.id;
+    });
+  } catch (e) {
+    out.menu = "error: " + (e && e.message || e);
+  }
+  return out;
 }
 function renderSelfTest() {
   var React = window.QwenPaw && window.QwenPaw.host && window.QwenPaw.host.React;
@@ -1173,6 +1759,10 @@ function cleanup(info) {
   } catch (e) {
   }
   try {
+    if (info.stopGestures) info.stopGestures();
+  } catch (e) {
+  }
+  try {
     stop();
   } catch (e) {
   }
@@ -1192,6 +1782,7 @@ function cleanup(info) {
     });
   } catch (e) {
   }
+  set({ sheet: false, modelView: false, drawer: false, pagesView: false });
   info.active = false;
   info.cleaned = true;
 }
@@ -1210,12 +1801,13 @@ function watchRoute(info) {
     var now = window.location.pathname || "/";
     if (now === last) return;
     last = now;
-    if (!isChatRoute()) cleanup(info);
+    if (isBlockedRoute()) cleanup(info);
     else if (info.cleaned) reactivate(info);
   };
   window.addEventListener("popstate", check);
   window.addEventListener("hashchange", check);
   var timer2 = window.setInterval(check, 500);
+  info.routeWatch = timer2;
 }
 async function boot() {
   var info = { version: VERSION, loaded: true, active: false, blocked: [], debug: debugRequested() };
@@ -1224,19 +1816,20 @@ async function boot() {
   } catch (e) {
   }
   syncSelfTestFlag();
-  if (isModelsRoute() && isMobileWidth()) {
-    info.active = true;
-    info.modelsPopupGuard = true;
-    info.disposables = [startModelPopupGuard()];
-    watchRoute(info);
-    return;
-  }
   var d = decide();
   if (!d.ok) {
     info.blocked = d.blocked;
     if (d.debug) console.info(LOG + " \u672A\u6FC0\u6D3B\uFF1A" + d.blocked.join("\uFF1B"));
     return;
   }
+  info.drift = bundleCheck();
+  if (info.drift.unknown) console.info(LOG + " \u6F02\u79FB\u544A\u8B66\uFF1A" + info.drift.hint);
+  compat().then(function(c) {
+    info.compat = c;
+    if (!c.ok) console.info(LOG + " \u7248\u672C\u8D8A\u754C\uFF1A" + (c.err || ""));
+  });
+  info.popupGuard = true;
+  info.popupDisposable = startModelPopupGuard();
   var legacy = await legacyPresent();
   info.legacy = legacy;
   if (legacy.found) {
@@ -1253,6 +1846,18 @@ async function boot() {
   info.probe = probe();
   info.viewport = snapshot();
   info.chromeOk = registerChrome(info);
+  info.integration = registerIntegration(info);
+  info.stopGestures = startGestures({
+    open: function() {
+      set({ drawer: true });
+    },
+    close: function() {
+      set({ drawer: false });
+    },
+    isOpen: function() {
+      return !!get().drawer;
+    }
+  });
   watchRoute(info);
   if (selfTestRequested()) {
     var r = renderSelfTest();
@@ -1260,7 +1865,7 @@ async function boot() {
     if (r.disposable) info.disposables = [r.disposable];
   }
   console.info(
-    LOG + " v" + VERSION + " \u5DF2\u6FC0\u6D3B\uFF08\u4EC5\u79FB\u52A8\u7AEF \u2264768px \xB7 iOS26 \u57FA\u7EBF\u901A\u8FC7\uFF09\xB7 \u81EA\u68C0\u5165\u53E3\uFF1AURL \u52A0 ?mo_selftest=1"
+    LOG + " v" + VERSION + " \u5DF2\u6FC0\u6D3B\uFF08\u79FB\u52A8\u7AEF \u2264768px \xB7 iOS26 \u57FA\u7EBF\u901A\u8FC7 \xB7 \u5168\u7AD9 chrome \u9664\u767B\u5F55\u9875\uFF09\xB7 \u81EA\u68C0\u5165\u53E3\uFF1AURL \u52A0 ?mo_selftest=1"
   );
 }
 boot().catch(function(e) {

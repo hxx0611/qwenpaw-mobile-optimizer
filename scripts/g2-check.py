@@ -4,32 +4,12 @@
 顶栏入口 → 面板条目 → 点 Loop 验官方弹层几何 → 关官方抽屉 → 重载 → 模型视图下拉 → 输入框剩余项。
 所有注入浏览器端的 JS 一律用 function(){} + 显式 return（箭头函数表达式体以 [ 开头易踩 ASI/括号坑）。
 """
-import json, os, sys, time
+import json, sys, time
+import pwenv  # noqa: F401  必须早于 playwright：固化浏览器路径（容器重建会丢 overlay 里的浏览器）
 from playwright.sync_api import sync_playwright
+from mo2_auth import seed
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8088"
-
-def seed(page):
-    """可选登录态注入：export MO2_TOKEN=<console 的 qwenpaw_auth_token>
-    （或 MO2_TOKEN_FILE=文件路径）。QwenPaw 开启 Auth 后，无登录态的无头页面
-    会被前端路由守卫跳去 /login，注入后验收脚本才能到达聊天页。不设置则跳过。"""
-    tok = os.environ.get("MO2_TOKEN", "").strip()
-    if not tok:
-        f = os.environ.get("MO2_TOKEN_FILE", "").strip()
-        try:
-            if f and os.path.exists(f):
-                tok = open(f, encoding="utf-8").read().strip()
-        except OSError:
-            tok = ""
-    if not tok:
-        return False
-    try:
-        page.add_init_script(
-            "try{localStorage.setItem('qwenpaw_auth_token',%s);}catch(e){}" % json.dumps(tok)
-        )
-        return True
-    except Exception:
-        return False
 UA = ("Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 "
       "(KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1")
 VW, VH = 402, 714

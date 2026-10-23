@@ -1,5 +1,7 @@
 // iOS Safari keyboard adaptation for the native QwenPaw/AntD model-ID Select.
-// This is intentionally scoped to /models and only runs while the keyboard is open.
+// v1.2.0（C1-d）：从「只在 /models 起」改成【全站常驻】——官方模型选择弹窗在聊天页顶栏、
+// /models 页都会出现，之前只在 /models 挂监听，等于一半场景没被覆盖。作用域仍由
+// mobile() + keyboardOpen() 双重把关，PC 端与键盘未弹起时一行代码都不跑。
 var MARK = 'data-mo2-model-popup';
 var timer = 0;
 var listeners = [];

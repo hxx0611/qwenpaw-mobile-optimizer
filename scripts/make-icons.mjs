@@ -7,17 +7,11 @@ import { readFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const require = createRequire(import.meta.url);
-// sharp 备用实现（主实现是 make-icons.sh + headless Chromium）。
-// 依赖 sharp：npm i sharp 后走本地 node_modules，或 SHARP_PATH 指定绝对路径。
-const sharpMod = require(process.env.SHARP_PATH || 'sharp');
+const sharpMod = require(process.env.SHARP_PATH || '/app/user-packages/node/lib/node_modules/sharp');
 const sharp = sharpMod.default || sharpMod;
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
-const SVG = process.argv[2];
-if (!SVG) {
-  console.error('用法: node make-icons.mjs <官方 console/online.svg 路径>');
-  process.exit(1);
-}
+const SVG = process.argv[2] || '/app/venv/lib/python3.11/site-packages/qwenpaw/console/online.svg';
 const OUT = join(ROOT, 'frontend', 'icons');
 mkdirSync(OUT, { recursive: true });
 
