@@ -49,6 +49,8 @@ python3 scripts/probe-routes.py  # 官方页面能不能渲染，先探再选
 
 构建要 Node 18+、esbuild、sharp。`build.mjs` 和 `make-icons.mjs` 里写的是我本机的工具路径，你按自己环境改一下。
 
+后面几支验收脚本是连我自己的实例跑的，里面的地址、验收 token 路径也在文件头上，换成你的就行。
+
 守卫脚本卡五件事，违反直接失败：不许 `removeChild` / `insertBefore`；`appendChild` 只能出现在 `boot/inject.js`；不许 `import 'react'`（React 必须从 `host.React` 拿）；不许劫持 `console.error` / `console.warn`；官方类名只能写在 `legacy.css` 里，最多 6 条。
 
 ## 这些不是 bug
