@@ -1,96 +1,89 @@
-# Mobile Optimizer（QwenPaw 移动端优化插件）
+# QwenPaw 手机端插件
 
-让 QwenPaw 在手机 / 小屏上更好用的纯前端插件。**v1.3.0**。
+QwenPaw 在电脑上挺好用，扔到手机上就别扭了：侧栏占掉 56 像素、按钮小得点不准、输入框一碰整页放大。
 
-当前版本：**1.3.0** ｜ 插件 ID：`qwenpaw-mobile-optimizer-v2` ｜ 作者：hxx0611 ｜ 基线：iOS 26+ / QwenPaw 2.2.0 ~ 2.4.0（插件自己比对 `/api/version`）
+这个插件是修这些的。纯前端，不碰后端，电脑上完全不生效。
 
-仅移动端（≤768px）生效；PC 端零影响（不注入样式、不建 DOM、不加监听、不碰 console）；禁用插件后刷新即还原。
+版本 **1.3.0**，要求 QwenPaw 2.2.0 ~ 2.4.0、iOS 26 以上。屏幕宽度 768 以下自动启用。
 
-## 为什么是"第二代"
+## 装
 
-v1（`qwenpaw-mobile-optimizer`，已停用并归档删除）是**事后修补官方 DOM**：12 个 MutationObserver、425 处官方类名引用、合成点击官方按钮。它带来两类反复出现的故障：真机整树崩溃（v0.1.59→v0.1.80）与上游升级后静默失效（2.2.1 连坏两轮）。
+下载 zip → 设置 → 插件管理 → 上传安装 → 启用，然后刷新页面。
 
-v2 改为**通过官方扩展点参与渲染**：UI 用官方 `window.QwenPaw.host.React/antd` 画，注册进 `slot` / `menu` / `chat` 扩展位；官方多余元素只用 CSS 隐藏。**JS 不写官方 DOM 一个字节**，因此"删节点导致 React 崩溃"这类问题在结构上不可能发生。
+手机打开就生效了。想确认，加 `?mo_selftest=1`，会出一张检查表。
 
-| 指标 | v1 | v2 实际 |
-|---|---|---|
-| MutationObserver | 12 | **0** |
-| 官方类名引用 | 425 | **6 条规则**，全部集中在 `src/styles/legacy.css` |
-| 中文文案匹配 | 12 处 | **0** |
-| PC 端运行时足迹 | 有 | **0 行代码执行** |
-| 上游不兼容时 | 半套生效（"只剩设置按钮"） | **完全不注入**，外观回到官方原生 |
+想当 App 用：Safari 分享 → 添加到主屏幕。从桌面图标进去是全屏，没有 Safari 工具栏。
 
-## 现在能用什么
+## 手机上会变成什么样
 
-- **顶栏三个入口**：新建对话 / 会话列表 / 功能面板（官方 `header.right` 槽 + antd Button）
-- **功能面板**：底部抽屉（antd `Drawer` + `List`），条目 = 新建会话、模型选择、模型管理、工具管理、打开文件工作区、Loop 模式、工具审批模式、切换智能体、官方图标栏开关、更多官方页面（收件箱 / 扩展 / 运行配置）、返回聊天（仅非聊天页）
-- **官方图标栏开关**：默认把官方 56px 侧栏移出屏外（`fixed` + `translateX(-100%)`，保留可测盒模型，不用 `display:none`），正文从 334px 吃满到 390px；需要时一键召回，状态跨导航存活
-- **模型切换走 REST**：`GET /api/models` 列表 + `PUT /api/models/active`（`scope:"agent"`），切换后派发 `model-switched` 让官方 UI 同步。不再需要 v1 那套"临时显示 header 骗出官方弹层"
-- **输入框下方只留 4 项**：麦克风 / 附件 / 上下文用量 / 发送；Loop、工具审批、项目目录收进面板。**强制单行**：官方在 ≤600px 会把它改成单列 grid 让发送键掉到第二行，插件内还原 `minmax(0,1fr) auto`
-- **输入框 16px 防聚焦放大**：官方 textarea 走 `var(--app-font-body)`（14px）且特异性压过全局守卫，触点即整页缩放；插件就地把该变量改成 16px
-- **键盘不挡输入框**：`--mo2-kbd` + `transform` 抬升输入区（Safari 不支持 `interactive-widget=resizes-content`，只能测 `visualViewport`）
-- **PWA**：分享 → 添加到主屏幕，名称 **QwenPaw**、官方 logo 图标，打开后全屏无 Safari 工具栏
-- **底部 Tab 导航**：聊天 / 模型 / 设置三入口；聊天页主动让位（那里底部是官方输入框，压上去就是"输入框被盖住"）
-- **自绘会话栏 + 左缘手势**：官方 `overlay.global` 槽里的 antd Drawer（左缘 24vw 起手、90px 阈值、`|dx|>|dy|*1.2`、横向滚动容器让路、手势后 400ms 吞掉幽灵点击）。**不读不碰官方 DOM** —— 这是 v1 时代"点官方侧栏再藏回去"的替代品
-- **官方菜单入口**：用官方 `route.add` 注册自有路由 `/mo2`，再用 `menu.add` 挂三条入口（智能体 / 设置 / 用户菜单）。纪律：**路由注册失败就不挂菜单**（未注册的 `/mo2` 是空白页）
-- **自检面板**：URL 加 `?mo_selftest=1`，**26 项** pass/fail（能力探测、样式生效、manifest 抓取、safe-area、键盘 delta、16px 防放大、standalone、bundle 漂移、版本区间、会话栏入口、底部 Tab、官方菜单入口、合成点击信号深度…）
+- 顶栏剩三个按钮：新建对话、会话列表、功能面板。原来挤在顶上的东西都收进面板。
+- 官方那条 56 像素的侧栏默认收走，390 宽的手机上正文从 334 撑到 390。想要回来，面板里点「官方图标栏」，随时能收回去，翻页也不会丢。
+- 面板里有：新建会话、模型选择、模型管理、工具管理、打开文件工作区、Loop 模式、工具审批模式、切换智能体、官方图标栏、更多官方页面（收件箱 / 扩展 / 运行配置）。
+- 输入框下面只留麦克风、附件、用量、发送。发送键不会再被挤到第二行。
+- 输入框字号是 16px，点进去不会整页放大。
+- 键盘弹起来，输入区跟着往上走，不会挡住。
+- 底部三个 Tab：聊天、模型、设置。聊天页不显示，因为那里底部本来就是输入框。
+- 左边往里划，拉出会话列表。
+- 模型可以直接换，走的是官方 REST 接口，换完界面同步。
 
-## 怎么用（给日常使用者）
+## 出问题先跑自检
 
-1. 手机浏览器打开 Console 地址（≤768px 宽自动生效）。
-2. 右上角三个图标：`＋` 新建对话、`⊞` 功能面板。
-3. 面板里点「模型选择」→ 直接在下拉里选模型，选中即生效并提示。
-4. 想装成 App：Safari 分享 → **添加到主屏幕** → 从桌面图标打开即全屏。
-5. 出问题时：地址栏加 `?mo_selftest=1` 截图给开发者，比描述现象快得多。
+地址后面加 `?mo_selftest=1`，26 项，红的截个图。
 
-调试开关：`?mo2_debug=1` 可在桌面强制激活（跳过宽度与基线判定）。
+想在任何宽度下强行打开，加 `?mo2_debug=1`。
 
-## 工程与发布
+## 不要了
+
+插件管理里禁用，或者把目录改名，后面加个 `.disabled`，刷新就回到官方原样。
+
+## 改代码
 
 ```sh
-sh scripts/release.sh              # 守卫→构建→热加载→内外网 md5 比对→交互验收，一步到位
-sh scripts/release.sh --no-check   # 只发布不跑验收
-python3 scripts/drift-check.py     # 官方前端漂移巡检（退出码 0/2/3）
-python3 scripts/g2-check.py        # 12 项交互验收（本地 WebKit = Safari 26.5 同源引擎）
-python3 scripts/live-check.py      # 不拦截任何请求，模拟真机完整路径（26 项自检）
-python3 scripts/webkit-check.py    # WebKit 真引擎：PC 零足迹 / 移动激活 + 自检面板
-python3 scripts/g3-check.py        # 深链 /models 与回聊天的激活回归、底部 Tab 往返、左缘手势
-python3 scripts/probe-routes.py    # 官方页面可渲染性探针（选路径前先跑，不凭印象）
+node scripts/guard.mjs           # 构建前检查，不过就不给构建
+node scripts/build.mjs           # 打成 frontend/index.js
+python3 scripts/webkit-check.py  # WebKit 真引擎跑一遍
+python3 scripts/g2-check.py      # 12 项交互验收
+python3 scripts/g3-check.py      # 深链、Tab 往返、左缘手势
+python3 scripts/probe-routes.py  # 官方页面能不能渲染，先探再选
 ```
 
-四条硬约束由 `scripts/guard.mjs` 在构建前强制（违反即失败）：禁 `removeChild`/`insertBefore`；`appendChild` 白名单仅 `boot/inject.js`；禁 `import 'react'`（React 必须走 `host.React`）；禁劫持 `console.error/warn`；官方类名字面量只准待在 `legacy.css`，且规则数预算 6 条。
+构建要 Node 18+、esbuild、sharp。`build.mjs` 和 `make-icons.mjs` 里写的是我本机的工具路径，你按自己环境改一下。
 
-**漂移巡检 cron**：每周一 09:00 静默跑 `drift-check.py`，比对官方 bundle 指纹并跑交互验收；无异常不打扰，验收变红才告警。这是把"上游升级打坏插件"从用户报修变成主动发现的保险。
+守卫脚本卡五件事，违反直接失败：不许 `removeChild` / `insertBefore`；`appendChild` 只能出现在 `boot/inject.js`；不许 `import 'react'`（React 必须从 `host.React` 拿）；不许劫持 `console.error` / `console.warn`；官方类名只能写在 `legacy.css` 里，最多 6 条。
 
-## 已知边界（不是 bug，别当 bug 报）
+## 这些不是 bug
 
-1. **iOS 26 以下设备不生效** —— 基线用能力探测判定（`CSS.supports('anchor-name')` / `:has()` / `dvh`），不用 UA（真机 UA 的 `CPU iPhone OS 18_7` 是苹果冻结字段，sniff 必错）。
-2. **4 处合成点击耦合**：Loop 模式、工具审批、打开工作区、新建会话 —— 官方没有对应 API，只能点官方控件。已隔离在 `src/legacy/click.js` 单文件，定位优先用 CSS Modules 模块名片段（`modeTrigger` 等，跨构建稳定）而非中文 aria-label；信号找不到时条目显示「入口缺失」并禁用，**不会**出现"点了没反应"。合成点击不改变 DOM 结构，不会引发 React 崩溃。
-3. **官方 antd 弹层仍由 rc-align 做 JS 定位**，不吃 CSS 锚定，残留部分靠 `legacy.css` 兜。
-4. **不做**：Web Push（需后端配 APNs key）、Service Worker 离线缓存（官方资源带 hash 且隧道域名会变，收益低风险高）。
-5. **隐藏官方控件不用 `display:none`**：那会让元素失去盒子，官方弹层按 `getBoundingClientRect` 定位会退化到 `(0,0)` 而整层飞出屏幕。`legacy.css` 用"压成 0 宽但保留原位"。
+**iOS 26 以下不生效。** 判断靠能力探测，不看 UA —— 苹果把 UA 里的系统版本冻在 `18_7` 了，读它必错。
 
-## 回滚与恢复
+**Loop 模式、工具审批、打开工作区、新建会话**这四个，官方没给接口，只能模拟点击。都关在 `src/legacy/click.js` 一个文件里。找不到入口会显示「入口缺失」并禁用，不会点了没反应。
 
-- **停用本插件**：在插件管理里禁用，或把目录改名为 `qwenpaw-mobile-optimizer-v2.disabled` 后触发一次插件重载；手机刷新即还原成官方原生界面。
-- **v1 已删除**：最终版 v0.1.83 的完整包在 `workspaces/default/backups/qwenpaw-mobile-optimizer-v1-final-*.zip`（含 `index.js` md5 `fda2182e…`），需要时解压回 `plugins/` 即可复活。
-- **会话栏手势的前世今生**：v1.0.0 时期做过一版 G3（自绘会话栏 + 左右滑手势），本地验收 15/15 PASS，但当时按决策未启用、代码删除。v1.2.0 的 **C1-a 重新实现**了这一能力（`src/api/chats.js` + `src/ui/SessionDrawer.jsx` + `src/env/gesture.js`），设计要点沿用当时那份笔记（数据契约 `GET /api/chats`、chat id ≠ session_id、隐藏官方控件禁用 `display:none`）。若要关掉：手势与入口都在自绘层内，禁用插件即还原，无官方 DOM 残留。
+**官方弹层的位置是 JS 算的**，不吃 CSS 锚定，剩下那点偏移靠 `legacy.css` 兜。
 
-## 目录结构
+**不做推送，也不做离线缓存。** 推送要后端配 APNs；离线缓存要面对带 hash 的资源名和会变的隧道域名，不划算。
+
+**藏官方控件不用 `display:none`。** 那样元素没了盒子，官方按 `getBoundingClientRect` 算位置会退到 `(0,0)`，整个弹层飞出屏幕。改成压成 0 宽、位置留着。
+
+## 顺带说说旧版
+
+v1 是事后改官方 DOM 的做法：12 个 MutationObserver、425 处官方类名。上游一升级就静默失效，中间崩过好几轮。
+
+v2 换了思路，只走官方扩展点：UI 用官方给的 React 画，往插槽里塞。JS 不碰官方 DOM 一个字节，所以「删节点把 React 搞崩」这种事从结构上就不可能发生。现在 MutationObserver 是 0，官方类名引用只剩 `legacy.css` 里 6 条，上游不兼容时直接不注入，外观回官方原样。
+
+## 目录
 
 ```
-src/index.js          启动编排：被动全局 → 闸门 → 互斥探测 → 注入 → 视口 → 插槽注册
-src/gate.js           宽度 + iOS26 能力基线 + v1 互斥（以公开清单为准，避免注入时机竞态）
-src/state.js          外部 store + useSyncExternalStore（顶栏与面板分属两次插槽注册）
-src/api/{qw,models,nav}.js   官方 API 薄封装：调用时才取 host；取不到即抛 CapabilityMissing
-src/api/{chats,pages}.js     会话列表（GET /api/chats，容忍多种包裹形态）/ 官方页面索引
-src/boot/inject.js    全仓唯一允许 appendChild 的文件（1 个 style + manifest/图标链接）
-src/env/viewport.js   唯一常驻几何 JS，只写 :root 的 CSS 变量
-src/env/gesture.js    左缘手势状态机（监听全 passive，不 preventDefault）
-src/env/drift.js      官方 bundle 指纹白名单 + 漂移告警（暴露 __mo2.drift）
-src/rail.js           官方侧栏召回/收走的开关（唯一动官方布局的模块，纯 CSS 变量驱动）
-src/legacy/click.js   全仓唯一允许与官方 DOM 交互的文件，且只允许 .click()
-src/ui/{TopBar,FeatureSheet,BottomTabs,SessionDrawer,ToolsPage,selftest}.jsx
+src/index.js              启动顺序：全局 → 闸门 → 互斥探测 → 注入 → 视口 → 注册插槽
+src/gate.js               宽度、iOS 26 能力基线、v1 互斥
+src/state.js              外部 store，顶栏和面板分开注册，共用一份状态
+src/api/{qw,models,nav}   官方接口的薄封装，取不到就抛 CapabilityMissing
+src/api/{chats,pages}     会话列表、官方页面索引
+src/boot/inject.js        全仓唯一能 appendChild 的地方（一个 style，几个 link）
+src/env/viewport.js       唯一常驻的几何计算，只往 :root 写 CSS 变量
+src/env/gesture.js        左缘手势，监听全是 passive
+src/env/drift.js          官方 bundle 指纹白名单，变了就报警（`__mo2.drift`）
+src/rail.js               官方侧栏收/放，纯 CSS 变量，不碰 DOM
+src/legacy/click.js       全仓唯一跟官方 DOM 打交道的地方，只允许 .click()
+src/ui/                   顶栏、功能面板、底部 Tab、会话抽屉、工具页、自检
 src/styles/{base,legacy}.css
-frontend/index.js     esbuild 产物（单文件自包含 ESM，不含第二份 React）
+frontend/index.js         esbuild 出来的单文件，不带第二份 React
 ```
