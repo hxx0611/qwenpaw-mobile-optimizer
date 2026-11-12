@@ -7,7 +7,7 @@
 import json, sys, time
 import pwenv  # noqa: F401  必须早于 playwright：固化浏览器路径（容器重建会丢 overlay 里的浏览器）
 from playwright.sync_api import sync_playwright
-from mo2_auth import seed
+from mo2_auth import seed, get_token, missing_hint
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8088"
 UA = ("Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 "
@@ -132,6 +132,11 @@ def phase(name, fn, pg_ref=None):
                 R[name + "_failstate_error"] = str(e2)[:120]
 
 
+if not get_token():
+    # 快速失败：没有登录态时页面必然跳 /login，后面 12 项全会红，别把它伪装成产品失败
+    print("G2: ENV " + missing_hint())
+    sys.exit(4)
+
 with sync_playwright() as p:
     b = p.webkit.launch()
     pg = b.new_page(viewport={"width": VW, "height": VH}, user_agent=UA)
@@ -139,6 +144,9 @@ with sync_playwright() as p:
     pg.on("console", lambda m: ERRS.append("console.error:" + m.text[:240]) if m.type == "error" else None)
     seed(pg)  # Auth 启用后注入登录态
     pg.goto(BASE + "/", wait_until="domcontentloaded")
+    if "/login" in pg.url:
+        print("G2: ENV 被重定向到登录页（登录态未生效）：" + pg.url)
+        sys.exit(4)
     R["ready"] = wait_ready(pg)
 
     R["chrome"] = pg.evaluate("function(){ return (window.__mo2||{}).chrome; }")

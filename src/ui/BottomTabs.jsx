@@ -4,7 +4,7 @@
 
 import { antd, icons } from '../api/qw.js';
 import { navigate, currentPath } from '../api/nav.js';
-import { isChatRoute } from '../gate.js';
+import { useAppState } from '../state.js';
 
 export var TABS = [
   { key: 'chat', label: '聊天', path: '/chat', icon: 'MessageOutlined' },
@@ -20,11 +20,14 @@ function isHere(pathname, tab) {
 export function BottomTabs() {
   var A = antd();
   var I = icons();
-  var here = currentPath();
+  // 必须订阅：overlay.global 槽里的组件不消费官方路由 context，路径变了不会被动重渲染。
+  // 读 store.path（nav.navigate 立即写、watchRoute 500ms 兜底写），location 只作首帧兜底。
+  var s = useAppState();
+  var here = s.path || currentPath();
 
   // 聊天页主动让位：那里底部被官方输入框占着，压上去就是「输入框被盖住」的现场。
   // 聊天页的导航由顶栏三键 + 左缘手势 + 面板「更多官方页面」承担，功能不丢。
-  if (isChatRoute()) return null;
+  if (here === '/' || /^\/chat(\/|$)/.test(here)) return null;
 
   return (
     <nav className="mo2-tabs" aria-label="mo2-底部导航">

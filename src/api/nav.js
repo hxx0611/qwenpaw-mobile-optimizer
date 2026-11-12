@@ -3,6 +3,8 @@
 // 官方前端是 BrowserRouter（history 模式），pushState 后派发 popstate 可被 react-router 接住；
 // 400ms 后核对 pathname，没动就说明没接住 → 退回 location.assign（可靠但会重载 SPA）。
 
+import { setPath } from '../state.js';
+
 export function currentPath() {
   try {
     return window.location.pathname || '/';
@@ -21,6 +23,8 @@ export function navigate(path) {
   try {
     window.history.pushState({}, '', path);
     window.dispatchEvent(new PopStateEvent('popstate', { state: window.history.state }));
+    // 立即广播路径（不等 500ms 兜底轮询），底栏/抽屉据此重渲染。
+    setPath(want);
   } catch (e) {
     try {
       window.location.assign(path);

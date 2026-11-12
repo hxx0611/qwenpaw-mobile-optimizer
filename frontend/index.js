@@ -1,7 +1,7 @@
-/* 浏览器插件 (Mobile Optimizer v2) v1.2.0 — 构建产物，请勿直接编辑，源码见 src/
+/* 浏览器插件 (Mobile Optimizer v2) v1.3.0 — 构建产物，请勿直接编辑，源码见 src/
    由 scripts/build.mjs 生成；改代码后必须重新构建再热加载。 */
 // src/version.js
-var VERSION = "1.2.0";
+var VERSION = "1.3.0";
 
 // src/gate.js
 var LOG = "[\u6D4F\u89C8\u5668\u63D2\u4EF6 v2]";
@@ -20,14 +20,6 @@ function hasBaseline() {
   try {
     if (!window.CSS || typeof CSS.supports !== "function") return false;
     return CSS.supports("anchor-name", "--mo2-a") && CSS.supports("selector(:has(*))") && CSS.supports("height", "100dvh");
-  } catch (e) {
-    return false;
-  }
-}
-function isChatRoute() {
-  try {
-    var path = window.location.pathname || "/";
-    return path === "/" || path === "/chat" || path.indexOf("/chat/") === 0;
   } catch (e) {
     return false;
   }
@@ -205,7 +197,7 @@ var PLUGIN_ID = "qwenpaw-mobile-optimizer-v2";
 var base_default = '/* v0.2 \u57FA\u7840\u6837\u5F0F\u3002G1 \u53EA\u653E\uFF1A\u53D8\u91CF\u3001iOS26 \u57FA\u7EBF\u5B88\u536B\u3001Safari \u5E38\u9A7B\u4FEE\u6B63\u3001\u81EA\u68C0\u9762\u677F\u6837\u5F0F\u3002\n   \u6536\u7EB3/\u5F39\u5C42/\u9876\u680F\u6837\u5F0F\u5728 G2/G4 \u8FFD\u52A0\uFF1Blegacy.css \u5C1A\u672A\u521B\u5EFA\uFF08\u76EE\u6807\uFF1A\u5B98\u65B9\u7C7B\u540D\u5F15\u7528 \u22646 \u6761\u4E14\u53EA\u5728\u90A3\u4E2A\u6587\u4EF6\u91CC\uFF09\u3002 */\n\n:root {\n  /* \u81EA\u68C0\u9879\u2469\uFF1A\u8BC1\u660E\u672C <style> \u771F\u7684\u751F\u6548\uFF08\u8BFB\u8BA1\u7B97\u503C\uFF09 */\n  --mo2-marker: mo2-ok;\n\n  /* \u7531 env/viewport.js \u7528 JS \u5B9E\u65F6\u5237\u65B0\uFF08iOS \u7684 100vh \u542B\u5DE5\u5177\u680F\uFF0C\u4E0D\u53EF\u4FE1\uFF09 */\n  --mo2-vh: 100dvh;\n  --mo2-kbd: 0px;\n  --mo2-safe-top: env(safe-area-inset-top, 0px);\n  --mo2-safe-bottom: env(safe-area-inset-bottom, 0px);\n  --mo2-safe-left: env(safe-area-inset-left, 0px);\n  --mo2-safe-right: env(safe-area-inset-right, 0px);\n}\n\n@media (max-width: 768px) {\n  /* iOS \u805A\u7126\u9632\u6574\u9875\u653E\u5927\uFF1A\u5B57\u53F7 <16px \u4F1A\u89E6\u53D1 Safari \u7F29\u653E\uFF08\u5386\u53F2\u8E29\u5751\uFF0C\u505A\u5E38\u9A7B\u5B88\u536B\uFF09 */\n  input,\n  textarea,\n  select {\n    font-size: 16px !important;\n  }\n\n  /* \u53BB 300ms \u5EF6\u8FDF\u4E0E\u7070\u95EA */\n  a,\n  button,\n  [role="button"] {\n    touch-action: manipulation;\n    -webkit-tap-highlight-color: transparent;\n  }\n\n  /* \u9632\u6A61\u76AE\u7B4B\u6EDA\u52A8\u7A7F\u900F\uFF08\u9762\u677F\u4E0E\u6EDA\u52A8\u5BB9\u5668\uFF09 */\n  #qwenpaw-mo2-root {\n    overscroll-behavior: contain;\n  }\n}\n\n/* ---------- \u9876\u680F\u5165\u53E3\u4E0E\u529F\u80FD\u9762\u677F\uFF08G2\uFF09 ---------- */\n.mo2-topbar {\n  display: inline-flex;\n  align-items: center;\n  gap: 2px;\n}\n\n.mo2-topbar-on {\n  background: rgba(24, 144, 255, 0.12) !important;\n}\n\n.mo2-drawer .mo2-sheet-list .mo2-row-item {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  padding: 13px 4px;\n  border-bottom: 1px solid rgba(127, 127, 127, 0.14);\n  cursor: pointer;\n  -webkit-tap-highlight-color: transparent;\n}\n\n.mo2-drawer .mo2-row-ico {\n  flex: 0 0 auto;\n  width: 22px;\n  text-align: center;\n  font-size: 16px;\n  opacity: 0.85;\n}\n\n.mo2-drawer .mo2-row-main {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  min-width: 0;\n}\n\n.mo2-drawer .mo2-row-label {\n  font-size: 15px;\n}\n\n.mo2-drawer .mo2-row-sub {\n  font-size: 11px;\n  opacity: 0.6;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.mo2-drawer .mo2-off {\n  opacity: 0.45;\n  pointer-events: none;\n}\n\n.mo2-sheet-head {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  margin-bottom: 8px;\n}\n\n.mo2-sheet-title {\n  font-size: 14px;\n  font-weight: 600;\n}\n\n.mo2-model-select {\n  width: 100%;\n}\n\n.mo2-err {\n  margin-top: 8px;\n  font-size: 12px;\n  color: #d4380d;\n}\n\n/* ---------- \u81EA\u68C0\u9762\u677F ---------- */\n.mo2-selftest {\n  position: fixed;\n  inset: auto 8px calc(8px + var(--mo2-safe-bottom)) 8px;\n  max-height: calc(var(--mo2-vh) - 24px);\n  overflow: auto;\n  -webkit-overflow-scrolling: touch;\n  z-index: 9999;\n  background: #fff;\n  color: #171717;\n  border: 1px solid #e5e5e5;\n  border-radius: 12px;\n  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);\n  padding: 12px 12px 14px;\n  font-size: 13px;\n  line-height: 1.5;\n  user-select: text;\n}\n\n@media (prefers-color-scheme: dark) {\n  .mo2-selftest {\n    background: #1f1f1f;\n    color: #f0f0f0;\n    border-color: #3a3a3a;\n  }\n}\n\n.mo2-selftest h3 {\n  margin: 0 0 8px;\n  font-size: 14px;\n}\n\n.mo2-row {\n  display: flex;\n  align-items: baseline;\n  gap: 6px;\n  padding: 3px 0;\n  border-bottom: 1px dashed rgba(127, 127, 127, 0.22);\n}\n\n.mo2-tag {\n  flex: 0 0 auto;\n  min-width: 46px;\n  text-align: center;\n  border-radius: 4px;\n  font-size: 11px;\n  padding: 1px 5px;\n  color: #fff;\n}\n\n.mo2-pass {\n  background: #22a06b;\n}\n\n.mo2-fail {\n  background: #d4380d;\n}\n\n.mo2-warn {\n  background: #d48806;\n}\n\n.mo2-name {\n  flex: 1 1 auto;\n}\n\n.mo2-detail {\n  flex: 0 0 auto;\n  font-family: ui-monospace, Menlo, monospace;\n  font-size: 11px;\n  opacity: 0.72;\n  max-width: 46%;\n  word-break: break-all;\n  text-align: right;\n}\n\n.mo2-actions {\n  display: flex;\n  gap: 8px;\n  margin-top: 10px;\n}\n\n.mo2-actions button {\n  font-size: 13px;\n  padding: 6px 10px;\n  border-radius: 8px;\n  border: 1px solid #d9d9d9;\n  background: #fafafa;\n  color: inherit;\n}\n\n.mo2-probe-input {\n  width: 100%;\n  margin: 8px 0 0;\n  padding: 8px 10px;\n  border: 1px solid #d9d9d9;\n  border-radius: 8px;\n}\n\n/* \u81EA\u68C0\u9879\u246D\uFF1A\u771F\u8BFB env(safe-area-inset-*)\uFF0C\u975E\u96F6\u8BF4\u660E viewport-fit=cover \u751F\u6548 */\n.mo2-safe-probe {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 1px;\n  height: 1px;\n  pointer-events: none;\n  opacity: 0;\n  padding-left: env(safe-area-inset-left, 0px);\n  padding-right: env(safe-area-inset-right, 0px);\n  padding-top: env(safe-area-inset-top, 0px);\n  padding-bottom: env(safe-area-inset-bottom, 0px);\n}\n/* ================= v1.2.0 \u8FFD\u52A0\uFF08C1-a \u4F1A\u8BDD\u680F / C1-b \u5E95\u90E8 Tab / C2-f \u66F4\u591A\u9875\u9762 / C1-c \u5DE5\u5177\u9875\uFF09 =================\n   \u5168\u90E8\u6302\u5728 .mo2-* \u81EA\u6709\u7C7B\u4E0A\uFF1A\u4E0D\u52A8\u5B98\u65B9\u7C7B\u540D\uFF08legacy.css \u9884\u7B97\u4ECD\u662F 3/6 \u6761\uFF09\uFF0C\n   \u4E5F\u4E0D\u6539\u5B98\u65B9\u8282\u70B9\u7684\u4EFB\u4F55\u5C5E\u6027 \u2014\u2014 \u8FD9\u662F\u300C\u5B98\u65B9\u63D2\u69FD + \u81EA\u6709 CSS\u300D\u8DEF\u7EBF\u7684\u5E95\u7EBF\u3002 */\n\n.mo2-tabs {\n  position: fixed;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  z-index: 900;\n  display: flex;\n  align-items: stretch;\n  height: 52px;\n  padding-bottom: env(safe-area-inset-bottom, 0px);\n  background: rgba(255, 255, 255, 0.96);\n  -webkit-backdrop-filter: blur(8px);\n  backdrop-filter: blur(8px);\n  border-top: 1px solid rgba(0, 0, 0, 0.08);\n}\n\n.mo2-tab {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  gap: 2px;\n  border: 0;\n  background: none;\n  padding: 0;\n  font-size: 11px;\n  color: #8c8c8c;\n  cursor: pointer;\n}\n\n.mo2-tab-on {\n  color: #1677ff;\n}\n\n.mo2-tab-ico {\n  font-size: 17px;\n  line-height: 1;\n}\n\n.mo2-session-body {\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  height: 100%;\n  overflow: auto;\n  -webkit-overflow-scrolling: touch;\n}\n\n.mo2-session-tools {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 2px 6px;\n  border-bottom: 1px solid rgba(0, 0, 0, 0.06);\n}\n\n.mo2-session-gtitle {\n  margin: 10px 4px 4px;\n  font-size: 12px;\n  color: #8c8c8c;\n}\n\n.mo2-session-item {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 8px;\n  min-height: 44px;\n  padding: 8px 10px;\n  border-radius: 8px;\n  background: rgba(0, 0, 0, 0.02);\n}\n\n.mo2-session-item:active {\n  background: rgba(0, 0, 0, 0.07);\n}\n\n.mo2-session-cur {\n  background: rgba(22, 119, 255, 0.08);\n}\n\n.mo2-session-name {\n  flex: 1;\n  min-width: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  font-size: 14px;\n}\n\n.mo2-session-side {\n  display: flex;\n  align-items: center;\n  gap: 4px;\n  flex: 0 0 auto;\n  font-size: 11px;\n  color: #8c8c8c;\n}\n\n.mo2-empty {\n  padding: 16px 6px;\n  font-size: 13px;\n  color: #8c8c8c;\n  text-align: center;\n}\n\n.mo2-tools {\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n  padding: 14px 14px calc(76px + env(safe-area-inset-bottom, 0px));\n}\n\n.mo2-tools-head {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n}\n\n.mo2-tools-title {\n  font-size: 18px;\n  font-weight: 600;\n}\n\n.mo2-tools-ver {\n  font-size: 12px;\n  color: #8c8c8c;\n}\n\n.mo2-tools-card {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n  padding: 10px 12px;\n  border: 1px solid rgba(0, 0, 0, 0.08);\n  border-radius: 10px;\n  background: rgba(0, 0, 0, 0.015);\n}\n\n.mo2-tools-line {\n  display: flex;\n  justify-content: space-between;\n  gap: 8px;\n  font-size: 12px;\n}\n\n.mo2-tools-k {\n  flex: 0 0 auto;\n  color: #8c8c8c;\n}\n\n.mo2-tools-v {\n  text-align: right;\n  word-break: break-all;\n}\n\n.mo2-bad {\n  color: #cf1322;\n}\n\n.mo2-tools-sec {\n  margin-top: 4px;\n  font-size: 12px;\n  color: #8c8c8c;\n}\n\n.mo2-tools-grid,\n.mo2-pages-grid {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr);\n  gap: 8px;\n  padding-bottom: 6px;\n}\n\n.mo2-tools-item,\n.mo2-pages-item {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  min-height: 62px;\n  padding: 8px 4px;\n  border: 1px solid rgba(0, 0, 0, 0.08);\n  border-radius: 10px;\n  background: none;\n  font-size: 12px;\n  color: inherit;\n}\n\n.mo2-tools-ico {\n  font-size: 18px;\n  line-height: 1;\n}\n\n.mo2-tools-actions {\n  display: flex;\n  gap: 8px;\n  flex-wrap: wrap;\n}\n\n.mo2-sheet-body {\n  max-height: min(62vh, calc(var(--mo2-vh, 100dvh) - var(--mo2-kbd, 0px) - 120px));\n  overflow: auto;\n  -webkit-overflow-scrolling: touch;\n}\n\n/* \u6DF1\u8272\uFF1A\u5B98\u65B9\u63A7\u5236\u53F0\u53EF\u8DDF\u968F\u7CFB\u7EDF\u6DF1\u8272\uFF0C\u786C\u767D\u5E95\u4F1A\u523A\u773C */\n@media (prefers-color-scheme: dark) {\n  .mo2-tabs {\n    background: rgba(20, 20, 22, 0.94);\n    border-top-color: rgba(255, 255, 255, 0.12);\n  }\n  .mo2-session-item {\n    background: rgba(255, 255, 255, 0.04);\n  }\n  .mo2-session-cur {\n    background: rgba(22, 119, 255, 0.16);\n  }\n  .mo2-tools-card,\n  .mo2-tools-item,\n  .mo2-pages-item {\n    border-color: rgba(255, 255, 255, 0.12);\n    background: rgba(255, 255, 255, 0.03);\n  }\n}';
 
 // src/styles/legacy.css
-var legacy_default = '/* legacy.css \u2014\u2014 \u5168\u4ED3\u552F\u4E00\u5141\u8BB8\u51FA\u73B0\u5B98\u65B9\u7C7B\u540D\u524D\u7F00\u7684\u6587\u4EF6\u3002\u89C4\u5219\u4E0A\u9650 6 \u6761\uFF0C\u6BCF\u6761\u5FC5\u987B\u5199\u660E\u7406\u7531\u3002\n   \u5931\u6548\u6A21\u5F0F\u88AB\u523B\u610F\u538B\u6210\u300C\u67D0\u4E2A\u6309\u94AE\u6CA1\u85CF\u4F4F\u300D\u8FD9\u79CD\u5916\u89C2\u7455\u75B5\uFF0C\u4E0D\u4F1A\u5D29\u3001\u4E0D\u4F1A\u9501\u4EA4\u4E92\u3002\n   \u9009\u62E9\u5668\u53EA\u7528 CSS Modules \u7684\u3010\u6A21\u5757\u540D\u7247\u6BB5\u3011\uFF08modeTrigger / ApprovalToggle-module__trigger \u2026\uFF09\uFF0C\n   \u5B83\u4EEC\u8DE8\u6784\u5EFA\u7A33\u5B9A\uFF0C\u53EA\u6709 __\u54C8\u5E0C \u540E\u7F00\u4F1A\u53D8\uFF1B\u4E0D\u7528 aria-label\uFF08\u4E2D\u6587\u6587\u6848\uFF0Ci18n \u4E00\u53D8\u5C31\u5931\u6548\uFF09\u3002 */\n\n@media (max-width: 768px) {\n  /* \u89C4\u5219 1\uFF1A\u8F93\u5165\u6846\u4E0B\u65B9\u53EA\u7559 \u9EA6\u514B\u98CE/\u9644\u4EF6/\u4E0A\u4E0B\u6587\u7528\u91CF/\u53D1\u9001 \u2014\u2014 Loop\u3001\u5BA1\u6279\u3001\u9879\u76EE\u76EE\u5F55\u6536\u8FDB\u529F\u80FD\u9762\u677F\u3002\n     \u6CE8\u610F\uFF1A\u4E0D\u7528 display:none\uFF01display:none \u4F1A\u8BA9\u5143\u7D20\u5931\u53BB\u76D2\u5B50\uFF0C\u5B98\u65B9\u5F39\u5C42\u6309 getBoundingClientRect\n     \u5B9A\u4F4D\u65F6\u4F1A\u9000\u5316\u5230 (0,0) \u800C\u6574\u5C42\u98DE\u51FA\u5C4F\u5E55\uFF08v0.1.78 \u8E29\u8FC7\uFF09\u3002\u8FD9\u91CC\u628A\u76D2\u5B50\u538B\u6210 0 \u5BBD\u4F46\u4FDD\u7559\u4F4D\u7F6E\uFF0C\n     \u5F39\u5C42\u4ECD\u7136\u951A\u5728\u8F93\u5165\u6846\u90A3\u4E00\u884C\u7684\u539F\u4F4D\uFF0C\u843D\u5728\u5C4F\u5185\u3002 */\n  [class*="modeTrigger"],\n  [class*="ApprovalToggle-module__trigger"],\n  [class*="SessionProjectDirectory-module__trigger"] {\n    width: 0 !important;\n    min-width: 0 !important;\n    max-width: 0 !important;\n    padding: 0 !important;\n    margin: 0 !important;\n    border: 0 !important;\n    overflow: hidden !important;\n    font-size: 0 !important;\n    color: transparent !important;\n  }\n\n  /* \u89C4\u5219 2\uFF1A\u4E0A\u6761\u538B\u6241\u540E\u5B98\u65B9\u90A3\u7EC4\u6309\u94AE\u7684 gap \u4F1A\u7559\u4E0B\u7A7A\u9699\uFF0C\u6536\u7D27\u4E00\u6B21 */\n  [class*="mobileComposerControl"] {\n    gap: 0 !important;\n  }\n\n\n  /* \u89C4\u5219 3\uFF08\u6536\u5C3E\u65F6\u5355\u72EC\u6458\u56DE\uFF09\uFF1AiOS \u952E\u76D8\u5F39\u8D77\u65F6\u62AC\u5347\u8F93\u5165\u533A\u3002\n     Safari \u4E0D\u652F\u6301 interactive-widget=resizes-content\uFF0C\u952E\u76D8\u53EA\u7F29 visualViewport\u3001\u5E03\u5C40\u89C6\u53E3\u4E0D\u52A8\uFF0C\n     \u6240\u4EE5\u5FC5\u987B\u81EA\u5DF1\u62AC\uFF1B\u7528 transform \u800C\u975E\u6539 height/margin\uFF0C\u907F\u514D\u6574\u9875\u91CD\u6392\u3002\n     --mo2-kbd \u7531 src/env/viewport.js \u5199\u5728 :root \u4E0A\uFF0C\u4E0D\u78B0\u5B98\u65B9\u8282\u70B9\u7684\u5185\u8054\u6837\u5F0F\u3002 */\n  [class*="sender"] {\n    transform: translateY(calc(-1 * var(--mo2-kbd, 0px)));\n  }\n}\n';
+var legacy_default = '/* legacy.css \u2014\u2014 \u5168\u4ED3\u552F\u4E00\u5141\u8BB8\u51FA\u73B0\u5B98\u65B9\u7C7B\u540D\u524D\u7F00\u7684\u6587\u4EF6\u3002\u89C4\u5219\u4E0A\u9650 6 \u6761\uFF0C\u6BCF\u6761\u5FC5\u987B\u5199\u660E\u7406\u7531\u3002\n   \u5931\u6548\u6A21\u5F0F\u88AB\u523B\u610F\u538B\u6210\u300C\u67D0\u4E2A\u6309\u94AE\u6CA1\u85CF\u4F4F\u300D\u8FD9\u79CD\u5916\u89C2\u7455\u75B5\uFF0C\u4E0D\u4F1A\u5D29\u3001\u4E0D\u4F1A\u9501\u4EA4\u4E92\u3002\n   \u9009\u62E9\u5668\u53EA\u7528 CSS Modules \u7684\u3010\u6A21\u5757\u540D\u7247\u6BB5\u3011\uFF08modeTrigger / ApprovalToggle-module__trigger \u2026\uFF09\uFF0C\n   \u5B83\u4EEC\u8DE8\u6784\u5EFA\u7A33\u5B9A\uFF0C\u53EA\u6709 __\u54C8\u5E0C \u540E\u7F00\u4F1A\u53D8\uFF1B\u4E0D\u7528 aria-label\uFF08\u4E2D\u6587\u6587\u6848\uFF0Ci18n \u4E00\u53D8\u5C31\u5931\u6548\uFF09\u3002 */\n\n@media (max-width: 768px) {\n  /* \u89C4\u5219 1\uFF1A\u8F93\u5165\u6846\u4E0B\u65B9\u53EA\u7559 \u9EA6\u514B\u98CE/\u9644\u4EF6/\u4E0A\u4E0B\u6587\u7528\u91CF/\u53D1\u9001 \u2014\u2014 Loop\u3001\u5BA1\u6279\u3001\u9879\u76EE\u76EE\u5F55\u6536\u8FDB\u529F\u80FD\u9762\u677F\u3002\n     \u6CE8\u610F\uFF1A\u4E0D\u7528 display:none\uFF01display:none \u4F1A\u8BA9\u5143\u7D20\u5931\u53BB\u76D2\u5B50\uFF0C\u5B98\u65B9\u5F39\u5C42\u6309 getBoundingClientRect\n     \u5B9A\u4F4D\u65F6\u4F1A\u9000\u5316\u5230 (0,0) \u800C\u6574\u5C42\u98DE\u51FA\u5C4F\u5E55\uFF08v0.1.78 \u8E29\u8FC7\uFF09\u3002\u8FD9\u91CC\u628A\u76D2\u5B50\u538B\u6210 0 \u5BBD\u4F46\u4FDD\u7559\u4F4D\u7F6E\uFF0C\n     \u5F39\u5C42\u4ECD\u7136\u951A\u5728\u8F93\u5165\u6846\u90A3\u4E00\u884C\u7684\u539F\u4F4D\uFF0C\u843D\u5728\u5C4F\u5185\u3002 */\n  [class*="modeTrigger"],\n  [class*="ApprovalToggle-module__trigger"],\n  [class*="SessionProjectDirectory-module__trigger"] {\n    width: 0 !important;\n    min-width: 0 !important;\n    max-width: 0 !important;\n    padding: 0 !important;\n    margin: 0 !important;\n    border: 0 !important;\n    overflow: hidden !important;\n    font-size: 0 !important;\n    color: transparent !important;\n  }\n\n  /* \u89C4\u5219 2\uFF1A\u4E0A\u6761\u538B\u6241\u540E\u5B98\u65B9\u90A3\u7EC4\u6309\u94AE\u7684 gap \u4F1A\u7559\u4E0B\u7A7A\u9699\uFF0C\u6536\u7D27\u4E00\u6B21 */\n  [class*="mobileComposerControl"] {\n    gap: 0 !important;\n  }\n\n\n  /* \u89C4\u5219 3\uFF08\u6536\u5C3E\u65F6\u5355\u72EC\u6458\u56DE\uFF09\uFF1AiOS \u952E\u76D8\u5F39\u8D77\u65F6\u62AC\u5347\u8F93\u5165\u533A\u3002\n     Safari \u4E0D\u652F\u6301 interactive-widget=resizes-content\uFF0C\u952E\u76D8\u53EA\u7F29 visualViewport\u3001\u5E03\u5C40\u89C6\u53E3\u4E0D\u52A8\uFF0C\n     \u6240\u4EE5\u5FC5\u987B\u81EA\u5DF1\u62AC\uFF1B\u7528 transform \u800C\u975E\u6539 height/margin\uFF0C\u907F\u514D\u6574\u9875\u91CD\u6392\u3002\n     --mo2-kbd \u7531 src/env/viewport.js \u5199\u5728 :root \u4E0A\uFF0C\u4E0D\u78B0\u5B98\u65B9\u8282\u70B9\u7684\u5185\u8054\u6837\u5F0F\u3002\n     \u26A0 \u53EA\u8BA4\u6700\u5916\u5C42 .qwenpaw-sender\u3002\u539F\u5199\u6CD5 [class*="sender"] \u4F1A\u540C\u65F6\u547D\u4E2D content /\n     content-bottom / prefix / actions / input \u7B49 9 \u4E2A\u5D4C\u5957\u8282\u70B9\uFF0C\u4F4D\u79FB\u9010\u5C42\u53E0\u52A0\n     \uFF08\u5B9E\u6D4B\u952E\u76D8 300px \u65F6\u5DE5\u5177\u680F\u8DD1\u5230 y=-441\uFF09\uFF0C\u6574\u5757\u8F93\u5165\u533A\u98DE\u51FA\u5C4F\u5E55\u3002 */\n  .qwenpaw-sender {\n    transform: translateY(calc(-1 * var(--mo2-kbd, 0px)));\n  }\n\n  /* \u89C4\u5219 4\uFF1A\u5B98\u65B9 56px \u6298\u53E0\u56FE\u6807\u680F\u5360\u6389\u6B63\u6587\u5BBD\u5EA6\uFF08390 \u2192 334\uFF09\u3002\u628A\u5B83\u79FB\u51FA\u6587\u6863\u6D41\uFF1A\u76D2\u5B50\u4ECD\u5728\uFF08\u5F39\u5C42\n     \u9760 Rect \u5B9A\u4F4D\uFF0C\u4E0D\u80FD\u7528 display:none\uFF09\uFF0C\u4F46\u4E0D\u518D\u8DDF\u6B63\u6587\u62A2\u6A2A\u5411\u7A7A\u95F4\u3002\u5F00\u5173\u5199 <html data-mo2-rail="on">\uFF0C\n     \u89C1 src/rail.js\uFF1B\u53EC\u56DE\u540E\u672C\u6761\u4E0D\u547D\u4E2D\uFF0C\u5B98\u65B9\u539F\u5E03\u5C40\u539F\u6837\u56DE\u6765\u3002\n     \u9009\u62E9\u5668\u53EA\u8BA4\u300C.qwenpaw-layout-has-sider \u7684\u76F4\u63A5\u5B50\u7EA7 + \u5185\u8054 56px\u300D\u8FD9\u4E00\u7ED3\u6784\u4E8B\u5B9E\uFF1A\n     \u5B98\u65B9\u6539\u5BBD\u5EA6 \u2192 \u89C4\u5219\u5931\u6548 \u2192 \u4FA7\u680F\u56DE\u6765\uFF08\u5916\u89C2\u56DE\u9000\uFF0C\u4E0D\u5D29\uFF09\u3002 */\n  html:not([data-mo2-rail="on"]) .qwenpaw-layout-has-sider > div[style*="width: 56px"] {\n    position: fixed !important;\n    left: 0 !important;\n    top: 0 !important;\n    height: 100% !important;\n    z-index: 60 !important;\n    transform: translateX(-100%) !important;\n  }\n\n  /* \u89C4\u5219 5\uFF1A\u5B98\u65B9\u5728 \u2264600px \u628A\u8F93\u5165\u6846\u4E0B\u65B9\u5DE5\u5177\u680F\u6539\u6210\u5355\u5217 grid\uFF08grid-template-columns:\n     minmax(0, 1fr)\uFF09\uFF0C\u300C\u524D\u7F00\u533A\u300D\u548C\u300C\u53D1\u9001\u952E\u300D\u5404\u5360\u4E00\u884C \u2014\u2014 \u89C6\u89C9\u4E0A\u5C31\u662F\u529F\u80FD\u677F\u6CA1\u5BF9\u9F50\u3001\u53D1\u9001\u952E\n     \u6389\u5230\u7B2C\u4E8C\u884C\uFF0C\u6574\u5757 composer \u9AD8 160px\u3002\u8FD9\u91CC\u8FD8\u539F\u6210\u300C\u524D\u7F00\u5360\u6EE1\u5269\u4F59\u5BBD\u5EA6 + \u53D1\u9001\u952E\u9760\u53F3\u300D\u5355\u884C\u3002\n     \u4ECD\u7528 grid \u800C\u4E0D\u662F\u6539 display:flex\uFF1A\u5B98\u65B9\u5F39\u5C42\u6309\u539F Grid \u76D2\u6A21\u578B\u6D4B\u91CF\uFF0C\u951A\u70B9\u4E0D\u4F1A\u8DD1\u3002 */\n  .qwenpaw-sender .qwenpaw-sender-content-bottom {\n    grid-template-columns: minmax(0, 1fr) auto !important;\n    grid-template-rows: auto !important;\n  }\n\n  /* \u89C4\u5219 6\uFF1AiOS \u805A\u7126\u81EA\u52A8\u653E\u5927\u3002\u5B98\u65B9 textarea \u7684 font-size \u8BFB var(--app-font-body)\uFF0C\u5176\u89C4\u5219\n     \uFF08.chatPageRoot textarea[data-sender-input=true]\uFF09\u7279\u5F02\u6027\u9AD8\u4E8E base.css \u91CC\u7684\n     input/textarea 16px \u5E38\u9A7B\u5B88\u536B\uFF0C\u4E8E\u662F\u5B9E\u9645\u7B97\u51FA\u6765\u662F 14px \u2192 Safari \u805A\u7126\u65F6\u6574\u9875\u653E\u5927\u3002\n     \u4E0D\u53BB\u5916\u5C42\u8986\u76D6 font-size\uFF08\u8981\u8DDF\u5B98\u65B9\u7684 !important \u6BD4\u7279\u5F02\u6027\uFF0C\u8106\uFF09\uFF0C\u800C\u662F\u628A\u5B98\u65B9\u53D8\u91CF\u5C31\u5730\u6539\u6210\n     16px\uFF0C\u5B98\u65B9\u89C4\u5219\u81EA\u5DF1\u7B97\u51FA 16px\u3002\u4F5C\u7528\u57DF\u53EA\u6709\u8FD9\u4E2A textarea\uFF0C\u4E0D\u5F71\u54CD\u6D88\u606F\u6B63\u6587\u3002 */\n  .qwenpaw-sender textarea[data-sender-input="true"] {\n    --app-font-body: 16px;\n  }\n}\n';
 
 // src/boot/inject.js
 var STYLE_ID = "qwenpaw-mo2-style";
@@ -731,7 +723,7 @@ function SelfTest(props) {
   var useRef = R.useRef;
   var ref = useRef(null);
   var st = useState(0);
-  var tick = st[0];
+  var tick2 = st[0];
   var setTick = st[1];
   var _m = useState(null);
   var minfo = _m[0];
@@ -749,10 +741,10 @@ function SelfTest(props) {
     return function() {
       stop2 = true;
     };
-  }, [tick]);
+  }, [tick2]);
   useEffect(function() {
     var t = setTimeout(function() {
-      setTick(tick + 1);
+      setTick(tick2 + 1);
     }, 300);
     return function() {
       clearTimeout(t);
@@ -770,14 +762,15 @@ function SelfTest(props) {
   } catch (e) {
   }
   var Tag = Antd && Antd.Tag;
-  return /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-selftest", "data-tick": tick }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("h3", null, "\u6D4F\u89C8\u5668\u63D2\u4EF6 v", VERSION, " \u81EA\u68C0 \xB7 ", passed, "/", items.length, " PASS", warned ? " \xB7 " + warned + " WARN" : ""), items.map(function(it, i) {
+  return /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-selftest", "data-tick": tick2 }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("h3", null, "\u6D4F\u89C8\u5668\u63D2\u4EF6 v", VERSION, " \u81EA\u68C0 \xB7 ", passed, "/", items.length, " PASS", warned ? " \xB7 " + warned + " WARN" : ""), items.map(function(it, i) {
     return /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-row", key: i }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-tag mo2-" + it.status }, it.status.toUpperCase()), /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-name" }, it.name), Tag ? /* @__PURE__ */ window.QwenPaw.host.React.createElement(Tag, { color: it.status === "pass" ? "success" : it.status === "warn" ? "warning" : "error" }, it.detail) : /* @__PURE__ */ window.QwenPaw.host.React.createElement("span", { className: "mo2-detail" }, it.detail));
-  }), /* @__PURE__ */ window.QwenPaw.host.React.createElement("input", { className: "mo2-probe-input", placeholder: "\u70B9\u6211\uFF1A\u6D4B\u952E\u76D8 delta \u4E0E 16px \u5B57\u53F7" }), /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-safe-probe", ref }), /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-actions" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("button", { onClick: () => setTick(tick + 1) }, "\u91CD\u65B0\u68C0\u6D4B"), /* @__PURE__ */ window.QwenPaw.host.React.createElement("button", { onClick: () => window.location.reload() }, "\u5237\u65B0\u9875\u9762")));
+  }), /* @__PURE__ */ window.QwenPaw.host.React.createElement("input", { className: "mo2-probe-input", placeholder: "\u70B9\u6211\uFF1A\u6D4B\u952E\u76D8 delta \u4E0E 16px \u5B57\u53F7" }), /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-safe-probe", ref }), /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-actions" }, /* @__PURE__ */ window.QwenPaw.host.React.createElement("button", { onClick: () => setTick(tick2 + 1) }, "\u91CD\u65B0\u68C0\u6D4B"), /* @__PURE__ */ window.QwenPaw.host.React.createElement("button", { onClick: () => window.location.reload() }, "\u5237\u65B0\u9875\u9762")));
 }
 
 // src/mobile-model-popup.js
 var MARK = "data-mo2-model-popup";
 var timer = 0;
+var started = false;
 var listeners = [];
 var saved = /* @__PURE__ */ new WeakMap();
 function mobile() {
@@ -825,12 +818,33 @@ function restore() {
     saved.delete(el);
   });
 }
+function active() {
+  return mobile() && keyboardOpen();
+}
+function arm() {
+  if (!timer) timer = window.setInterval(tick, 300);
+}
+function disarm() {
+  if (timer) {
+    window.clearInterval(timer);
+    timer = 0;
+  }
+}
+function tick() {
+  adjust();
+  if (!active()) disarm();
+}
+function run() {
+  window.requestAnimationFrame(function() {
+    adjust();
+    if (active()) arm();
+    else disarm();
+  });
+}
 function startModelPopupGuard() {
-  if (timer) return function() {
+  if (started) return function() {
   };
-  var run = function() {
-    window.requestAnimationFrame(adjust);
-  };
+  started = true;
   var vv = window.visualViewport;
   ["resize", "scroll"].forEach(function(ev) {
     if (vv) {
@@ -841,11 +855,10 @@ function startModelPopupGuard() {
   document.addEventListener("focusin", run, true);
   document.addEventListener("click", run, true);
   listeners.push([document, "focusin", run, true], [document, "click", run, true]);
-  timer = window.setInterval(adjust, 300);
-  adjust();
+  run();
   return function() {
-    if (timer) window.clearInterval(timer);
-    timer = 0;
+    disarm();
+    started = false;
     listeners.forEach(function(x) {
       x[0].removeEventListener(x[1], x[2], x[3]);
     });
@@ -855,7 +868,14 @@ function startModelPopupGuard() {
 }
 
 // src/state.js
-var _s = { sheet: false, modelView: false, drawer: false, pagesView: false };
+function readPath() {
+  try {
+    return window.location.pathname || "/";
+  } catch (e) {
+    return "/";
+  }
+}
+var _s = { sheet: false, modelView: false, drawer: false, pagesView: false, path: readPath() };
 var _subs = /* @__PURE__ */ new Set();
 function get() {
   return _s;
@@ -881,6 +901,11 @@ function toggleSheet(v) {
 function toggleDrawer(v) {
   set({ drawer: typeof v === "boolean" ? v : !_s.drawer });
 }
+function setPath(p) {
+  var next = p || "/";
+  if (next === _s.path) return;
+  set({ path: next });
+}
 function useAppState() {
   var R = window.QwenPaw.host.React;
   return R.useSyncExternalStore(subscribe, get, get);
@@ -894,7 +919,7 @@ function currentPath() {
     return "/";
   }
 }
-function isChatRoute2() {
+function isChatRoute() {
   var p = currentPath();
   return p === "/" || /^\/chat(\/|$)/.test(p);
 }
@@ -903,6 +928,7 @@ function navigate(path) {
   try {
     window.history.pushState({}, "", path);
     window.dispatchEvent(new PopStateEvent("popstate", { state: window.history.state }));
+    setPath(want);
   } catch (e) {
     try {
       window.location.assign(path);
@@ -976,18 +1002,68 @@ function TopBar() {
 // src/api/pages.js
 var PAGES = [
   { key: "sessions", label: "\u4F1A\u8BDD", path: "/sessions", icon: "MessageOutlined" },
+  { key: "inbox", label: "\u6536\u4EF6\u7BB1", path: "/inbox", icon: "InboxOutlined" },
   { key: "token-usage", label: "Token \u6D88\u8017", path: "/token-usage", icon: "BarChartOutlined" },
   { key: "files", label: "\u6587\u4EF6", path: "/files", icon: "FolderOpenOutlined" },
   { key: "skills", label: "\u6280\u80FD", path: "/skills", icon: "ThunderboltOutlined" },
   { key: "mcp", label: "MCP", path: "/mcp", icon: "ApiOutlined" },
+  { key: "market", label: "\u6269\u5C55", path: "/market", icon: "AppstoreOutlined" },
   { key: "checkpoints", label: "\u68C0\u67E5\u70B9", path: "/checkpoints", icon: "HistoryOutlined" },
   { key: "cron-jobs", label: "\u5B9A\u65F6\u4EFB\u52A1", path: "/cron-jobs", icon: "ClockCircleOutlined" },
   { key: "agents", label: "\u667A\u80FD\u4F53", path: "/agents", icon: "TeamOutlined" },
+  { key: "agent-config", label: "\u8FD0\u884C\u914D\u7F6E", path: "/agent-config", icon: "ControlOutlined" },
   { key: "security", label: "\u5B89\u5168", path: "/security", icon: "SafetyCertificateOutlined" },
   { key: "backups", label: "\u5907\u4EFD", path: "/backups", icon: "CloudDownloadOutlined" },
   { key: "environments", label: "\u73AF\u5883\u53D8\u91CF", path: "/environments", icon: "SettingOutlined" },
   { key: "debug", label: "\u8C03\u8BD5", path: "/debug", icon: "BugOutlined" }
 ];
+
+// src/rail.js
+var KEY = "mo2_rail";
+function railOn() {
+  try {
+    return window.localStorage.getItem(KEY) === "1";
+  } catch (e) {
+    return false;
+  }
+}
+function setRail(on) {
+  try {
+    var root2 = document.documentElement;
+    if (on) root2.setAttribute("data-mo2-rail", "on");
+    else root2.removeAttribute("data-mo2-rail");
+    window.localStorage.setItem(KEY, on ? "1" : "0");
+  } catch (e) {
+  }
+  return !!on;
+}
+function toggleRail() {
+  return setRail(!railOn());
+}
+function applyRail() {
+  return setRail(railOn());
+}
+function showAgentSwitcher() {
+  var sels = [
+    'button[aria-label="\u9009\u62E9\u667A\u80FD\u4F53"]',
+    'button[aria-label="\u5207\u6362\u667A\u80FD\u4F53"]',
+    'button[aria-label="Switch agent"]',
+    'button[aria-label="Select agent"]'
+  ];
+  for (var i = 0; i < sels.length; i++) {
+    var btn = null;
+    try {
+      btn = document.querySelector(sels[i]);
+    } catch (e) {
+      btn = null;
+    }
+    if (btn) {
+      btn.click();
+      return true;
+    }
+  }
+  return false;
+}
 
 // src/ui/FeatureSheet.jsx
 function FeatureSheet() {
@@ -997,7 +1073,7 @@ function FeatureSheet() {
   var A = antd();
   var I = icons();
   var st = useAppState();
-  var _a = useState(null), active = _a[0], setActiveInfo = _a[1];
+  var _a = useState(null), active2 = _a[0], setActiveInfo = _a[1];
   var _o = useState(null), opts = _o[0], setOpts = _o[1];
   var _b = useState(false), busy = _b[0], setBusy = _b[1];
   var _v = useState({}), avail = _v[0], setAvail = _v[1];
@@ -1054,7 +1130,7 @@ function FeatureSheet() {
       close();
       return;
     }
-    if (!isChatRoute2()) {
+    if (!isChatRoute()) {
       navigate("/");
       waitOfficial(key, 5e3).then(function(r2) {
         if (r2.ok) close();
@@ -1064,7 +1140,7 @@ function FeatureSheet() {
     }
     toast("\u6CA1\u627E\u5230\u5B98\u65B9\u5165\u53E3\uFF1A" + key, "error");
   }
-  var onChat = isChatRoute2();
+  var onChat = isChatRoute();
   function composerItem(sigKey, label, Icon) {
     var miss = avail[sigKey] === false;
     return {
@@ -1096,7 +1172,7 @@ function FeatureSheet() {
   items.push({
     key: "model",
     label: "\u6A21\u578B\u9009\u62E9",
-    sub: active && active.model ? active.provider_id + " / " + active.model : "\u8BFB\u53D6\u4E2D\u2026",
+    sub: active2 && active2.model ? active2.provider_id + " / " + active2.model : "\u8BFB\u53D6\u4E2D\u2026",
     icon: I.RobotOutlined,
     run: openModelView
   });
@@ -1152,7 +1228,30 @@ function FeatureSheet() {
       set({ pagesView: true });
     }
   });
-  if (!isChatRoute2()) {
+  items.push({
+    key: "agentSwitch",
+    label: "\u5207\u6362\u667A\u80FD\u4F53",
+    sub: "\u5B98\u65B9\u667A\u80FD\u4F53\u6C14\u6CE1",
+    icon: I.UserSwitchOutlined,
+    run: function() {
+      close();
+      setTimeout(function() {
+        if (!showAgentSwitcher()) toast("\u6CA1\u627E\u5230\u667A\u80FD\u4F53\u5207\u6362\u6309\u94AE", "error");
+      }, 260);
+    }
+  });
+  items.push({
+    key: "rail",
+    label: "\u5B98\u65B9\u56FE\u6807\u680F",
+    sub: railOn() ? "\u5DF2\u663E\u793A \xB7 \u5360 56px \u5BBD" : "\u5DF2\u9690\u85CF \xB7 \u6B63\u6587\u5403\u6EE1\u5C4F",
+    icon: I.LayoutOutlined,
+    run: function() {
+      var on = toggleRail();
+      toast(on ? "\u5DF2\u663E\u793A\u5B98\u65B9\u56FE\u6807\u680F" : "\u5DF2\u9690\u85CF\u5B98\u65B9\u56FE\u6807\u680F\uFF0C\u6B63\u6587\u6062\u590D\u5168\u5BBD");
+      set({ railRev: (get().railRev || 0) + 1 });
+    }
+  });
+  if (!isChatRoute()) {
     items.push({
       key: "back",
       label: "\u8FD4\u56DE\u804A\u5929",
@@ -1166,8 +1265,8 @@ function FeatureSheet() {
   var Back = I.ArrowLeftOutlined;
   function optionsWithActive() {
     var list = opts || [];
-    if (active && active.provider_id && active.model) {
-      var key = active.provider_id + "::" + active.model;
+    if (active2 && active2.provider_id && active2.model) {
+      var key = active2.provider_id + "::" + active2.model;
       var found = false;
       list.forEach(function(g) {
         (g.options || []).forEach(function(o) {
@@ -1175,7 +1274,7 @@ function FeatureSheet() {
         });
       });
       if (!found) {
-        list = [{ label: "\u5F53\u524D\u6A21\u578B", options: [{ value: key, label: active.model }] }].concat(list);
+        list = [{ label: "\u5F53\u524D\u6A21\u578B", options: [{ value: key, label: active2.model }] }].concat(list);
       }
     }
     return list;
@@ -1228,13 +1327,13 @@ function FeatureSheet() {
       loading: busy,
       disabled: busy,
       placeholder: opts ? "\u9009\u62E9\u6A21\u578B" : "\u52A0\u8F7D\u6A21\u578B\u5217\u8868\u2026",
-      value: active && active.model && active.provider_id ? active.provider_id + "::" + active.model : void 0,
+      value: active2 && active2.model && active2.provider_id ? active2.provider_id + "::" + active2.model : void 0,
       options: optionsWithActive(),
       onChange: onPick,
       optionFilterProp: "label",
       style: { width: "100%" }
     }
-  ), active && active.error ? /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-err" }, "\u5F53\u524D\u6A21\u578B\u8BFB\u53D6\u5931\u8D25\uFF1A", active.error) : null) : /* @__PURE__ */ window.QwenPaw.host.React.createElement(
+  ), active2 && active2.error ? /* @__PURE__ */ window.QwenPaw.host.React.createElement("div", { className: "mo2-err" }, "\u5F53\u524D\u6A21\u578B\u8BFB\u53D6\u5931\u8D25\uFF1A", active2.error) : null) : /* @__PURE__ */ window.QwenPaw.host.React.createElement(
     A.List,
     {
       className: "mo2-sheet-list",
@@ -1290,8 +1389,9 @@ function isHere(pathname, tab) {
 function BottomTabs() {
   var A = antd();
   var I = icons();
-  var here = currentPath();
-  if (isChatRoute()) return null;
+  var s = useAppState();
+  var here = s.path || currentPath();
+  if (here === "/" || /^\/chat(\/|$)/.test(here)) return null;
   return /* @__PURE__ */ window.QwenPaw.host.React.createElement("nav", { className: "mo2-tabs", "aria-label": "mo2-\u5E95\u90E8\u5BFC\u822A" }, TABS.map(function(t) {
     var Ic = I[t.icon];
     var on = isHere(here, t);
@@ -1795,19 +1895,59 @@ function reactivate(info) {
   info.cleaned = false;
   info.reactivations = (info.reactivations || 0) + 1;
 }
+function patchHistory(check) {
+  try {
+    var h = window.history;
+    if (!h || typeof h.pushState !== "function") return false;
+    var wrap = function(name) {
+      var orig = h[name];
+      if (typeof orig !== "function") return;
+      var f = function() {
+        var r = orig.apply(this, arguments);
+        try {
+          check();
+        } catch (e) {
+        }
+        return r;
+      };
+      try {
+        Object.defineProperty(f, "name", { value: String(name) });
+      } catch (e) {
+      }
+      try {
+        Object.defineProperty(f, "length", { value: orig.length });
+      } catch (e) {
+      }
+      h[name] = f;
+    };
+    wrap("pushState");
+    wrap("replaceState");
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 function watchRoute(info) {
   var last = window.location.pathname || "/";
   var check = function() {
     var now = window.location.pathname || "/";
     if (now === last) return;
     last = now;
+    setPath(now);
     if (isBlockedRoute()) cleanup(info);
     else if (info.cleaned) reactivate(info);
   };
   window.addEventListener("popstate", check);
   window.addEventListener("hashchange", check);
-  var timer2 = window.setInterval(check, 500);
-  info.routeWatch = timer2;
+  window.addEventListener("pageshow", check);
+  document.addEventListener("visibilitychange", function() {
+    if (!document.hidden) check();
+  });
+  var intercepted = patchHistory(check);
+  info.routeWatch = "events" + (intercepted ? "+5s" : "+500ms");
+  info.historyPatched = intercepted;
+  var timer2 = window.setInterval(check, intercepted ? 5e3 : 500);
+  info.routeTimer = timer2;
 }
 async function boot() {
   var info = { version: VERSION, loaded: true, active: false, blocked: [], debug: debugRequested() };
@@ -1840,6 +1980,7 @@ async function boot() {
     return;
   }
   injectStyle();
+  info.railOn = applyRail();
   info.manifestAdded = injectManifest();
   start();
   info.active = true;

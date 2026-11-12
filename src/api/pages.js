@@ -4,13 +4,16 @@
 
 export var PAGES = [
   { key: 'sessions', label: '会话', path: '/sessions', icon: 'MessageOutlined' },
+  { key: 'inbox', label: '收件箱', path: '/inbox', icon: 'InboxOutlined' },
   { key: 'token-usage', label: 'Token 消耗', path: '/token-usage', icon: 'BarChartOutlined' },
   { key: 'files', label: '文件', path: '/files', icon: 'FolderOpenOutlined' },
   { key: 'skills', label: '技能', path: '/skills', icon: 'ThunderboltOutlined' },
   { key: 'mcp', label: 'MCP', path: '/mcp', icon: 'ApiOutlined' },
+  { key: 'market', label: '扩展', path: '/market', icon: 'AppstoreOutlined' },
   { key: 'checkpoints', label: '检查点', path: '/checkpoints', icon: 'HistoryOutlined' },
   { key: 'cron-jobs', label: '定时任务', path: '/cron-jobs', icon: 'ClockCircleOutlined' },
   { key: 'agents', label: '智能体', path: '/agents', icon: 'TeamOutlined' },
+  { key: 'agent-config', label: '运行配置', path: '/agent-config', icon: 'ControlOutlined' },
   { key: 'security', label: '安全', path: '/security', icon: 'SafetyCertificateOutlined' },
   { key: 'backups', label: '备份', path: '/backups', icon: 'CloudDownloadOutlined' },
   { key: 'environments', label: '环境变量', path: '/environments', icon: 'SettingOutlined' },

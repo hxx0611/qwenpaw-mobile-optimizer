@@ -1,5 +1,61 @@
 # 变更日志
 
+## v1.3.0 — 2026-11-12
+
+### ③ 官方 56px 折叠图标栏白吃正文宽度（已修）
+
+- **根因**：官方 `dockableSidebar` 的 anchor 是 `.qwenpaw-layout-has-sider` 的 flex 子项，内联 `width: 56px`，在 390 宽屏上稳定占掉 56px —— 正文只剩 **334**。它不是移动端该有的形态，但官方没有为窄屏做分流（`__mobile__` 只是加了类，宽度照旧）。
+- **修法**：把 anchor **移出文档流但保留渲染** —— `position: fixed` + `translateX(-100%)`，正文吃满 **390**，`scrollWidth` 仍 390（无横向溢出）。
+  - 为什么不用 `display: none`：官方弹层（选择智能体、审批模式一类）靠 trigger 的 `getBoundingClientRect` 定位，盒子消失会让气泡退化到 (0,0) 飞出屏幕；移出屏外时 Rect 仍有坐标，气泡正常落回屏内（实测 left = **-2**，270 宽全可见）。
+  - 选择器只认结构事实「`.qwenpaw-layout-has-sider` 的直接子级 + 内联 `width: 56px`」，不绑哈希类名；官方若改宽度 → 规则不命中 → 侧栏回来（外观回退，不崩、不锁交互）。
+- **入口不丢**（逐项补位，不是赌）：
+  - 8 个图标入口 → 功能面板「更多官方页面」补齐 **收件箱 `/inbox`**、**扩展 `/market`**、**运行配置 `/agent-config`**（原 12 项 → 15 项）；定时任务/文件/模型/移动端工具/移动端优化本来就有替代。
+  - 顶部三项：新建任务/聊天历史 = 我们自己的新建对话 + 会话抽屉；**选择智能体** = 功能面板新增一行，合成点击官方按钮，气泡照旧弹出（复用官方 UI，不重造）。
+  - 想找回原布局：功能面板新增「官方图标栏」开关（写 `localStorage`，跨导航存活；关闭时不往 `<html>` 写属性，桌面端仍是零足迹）。
+- **验收**（WebKit + iPhone 15 视口，路由拦截喂新 bundle 绕开 4h 缓存，`scripts/v13-check.py` **25/25**）：侧栏 `left=-56 w=56`、正文 `390 / x=0`、`scrollWidth=390`；底栏 `w=390 y≈792`、顶栏按钮在屏内；气泡 `x=-2 w=270`（含 小蜗 / QA Agent）；开关召回 → `334`、再收走 → `390`；`/inbox` 渲染且正文 390；`/chat` 正文 390 且底栏让位；reload 后召回/恢复均生效；零 console error；桌面 1280 宽 → 未激活、无样式、无属性、侧栏原位。
+- **已知取舍**：侧栏的**未读角标**（收件箱小红点）不再常驻可见——收件箱页面本身已可从功能面板进入；若以后要恢复角标常驻，正确做法是在我们的顶栏做一枚独立指示器，而不是把 56px 请回来。
+
+### ④ 输入框工具栏换行 + 聚焦整页放大 + 键盘态飞出屏（已修）
+
+三处都在 `legacy.css`，正好把规则预算用满 **6/6**。
+
+- **症状一：功能板没对齐，发送键掉到第二行。**
+  - **根因**：官方 `@media (max-width:600px)` 把 `.qwenpaw-sender-content-bottom` 从 flex 改成 `display:grid; grid-template-columns:minmax(0,1fr)` —— 单列，前缀区（麦克风/附件/上下文用量）和 actions 各占一行，整块 composer **160px**。
+  - **修法（规则 5）**：在该断点内还原 `grid-template-columns:minmax(0,1fr) auto` + `grid-template-rows:auto`。仍保持 `grid` 而不是改 `display:flex`：官方弹层按 Grid 盒模型测量锚点，换布局类型会让气泡跑位。
+- **症状二：点输入框 iOS 整页放大一下。**
+  - **根因**：官方 textarea 的 `font-size` 读 `var(--app-font-body)`（=14px），选择器 `.chatPageRoot textarea[data-sender-input=true]` 特异性高于 `base.css` 里的 `input,textarea{font-size:16px!important}`；两边都 `!important` 时高特异性胜 → 实际算出 **14px**，Safari 聚焦即缩放。
+  - **修法（规则 6）**：在 `.qwenpaw-sender textarea[data-sender-input="true"]` 上就地写 `--app-font-body:16px`，让官方规则自己算出 16px。不跟官方 `!important` 比特异性（脆），也不影响消息正文。
+- **症状三（未报但同源）：键盘弹起时输入区整体飞出屏幕。**
+  - **根因**：规则 3 原选择器 `[class*="sender"]` 同时命中 `content / content-bottom / prefix / actions / input` 等 **9 个嵌套节点**，`translateY(--mo2-kbd)` 逐层叠加 —— 300px 键盘变成约 2700px 位移，实测工具栏顶端 `y=-441`。
+  - **修法（规则 3）**：选择器收窄到最外层 `.qwenpaw-sender`，位移只发生一次。
+- **验收**（WebKit + iPhone UA，路由拦截喂本地 bundle 绕开 4h 缓存；`v13-check.py` 回归 **25/25**，composer 专项 **48/48**）：
+  - 320 / 360 / 390 / 430 四档一致：composer **160 → 116**，工具栏 **44px 单行**，prefix 与发送键 `top` 完全相同，`grid-template-columns: 302px 52px`（390 档），textarea **16px / lh 24px**，`--app-font-body=16px`，`overflowX=0`。
+  - 模拟 300px 键盘：位移恰好 **300**（单层，证实不再叠加），工具栏 `lowest` = 211 / 383 / 487 / 575 全在屏内；修前为 **-441**。
+  - 四档均零 console error / pageerror；桌面 1280 宽仍零足迹（R8）。
+- **代价与边界**：`legacy.css` 规则数到顶 **6/6**，以后再加官方类名规则必须先合并旧规则；规则 5 只覆盖「前缀 + actions」两列形态，官方若新增第三列（如语音条）需重看。
+
+## v1.2.1（累积中，三个修法分三批落）— 2026-11-12
+
+### ① 底栏不跟随路由，压住聊天输入框（已修）
+
+- **根因**：`overlay.global` 槽里的组件不消费官方路由 context，路由一变不会重渲染。`BottomTabs` 在 render 里读 `location.pathname`，拿到的是"首次渲染那一刻"的快照，于是出现两副面孔：`/models` 整页进入后再点「聊天」→ 底栏留在原地、选中态也不动，且仍压住 `/chat` 底部输入框；`/chat` 进入后 `pushState` 到 `/models` → 底栏缺失（渲染时机在 `/chat`，被让位逻辑吃掉）。
+- **修法**：`path` 进 store（`state.setPath` 幂等，值没变不通知）。两个写入点：`nav.navigate` 在 `pushState` 后立即广播（点击零延迟），`watchRoute` 的 500ms 巡检兜底广播（官方内部跳转不经我们的 `navigate`）。`BottomTabs` 订阅 `useAppState().path` 重渲染，聊天页让位判定改用同一份 `path`，不再各读各的 `location`。
+- **验收**（WebKit + iPhone 15 视口，route 拦截喂新 bundle 以绕开静态资源 4h 缓存）：`/models` 整页 → 底栏 `y=792 h=52`；点「聊天」→ `/chat` 且 **26ms** 内消失；`/chat` 整页 → 无底栏；`/chat` 内 `pushState` 到 `/models` → **18ms** 内出现；聊天页输入框不再被压、弹层留白正常；会话抽屉开合与 Esc 回归通过；零 console error。
+- **顺带修测试**：`g3-check.py` 的 R8 一直在数 `.mo2-pages-item`（那是功能面板二级视图的类名），`/mo2` 工具页实际用 `.mo2-tools-item` —— 断言一直假红，与产品行为无关。
+
+### ② 空闲轮询空转（已修）
+
+- **症状**：没有任何交互时，插件自己一小时烧掉约 **19200 次**定时回调 —— 300ms 的模型弹窗校正（12000 次）+ 500ms 的路由巡检（7200 次）。
+- **修法一（弹窗校正：按需武装）**：定时器只在"移动端 + 键盘弹起"期间存在。事件（`visualViewport` resize/scroll、`focusin`、`click`）负责武装，键盘收起后立刻撤除，另加自愈——万一下一次 tick 发现键盘已收，也会自己撤枪。键盘弹起期间的 **300ms 节奏完全不变**（异步渲染 / 虚拟列表滚动重新盖回样式仍能被追上）。
+- **修法二（路由巡检：事件优先）**：官方 SPA 跳转最终都落在 `history.pushState/replaceState`，history@5 是**调用时**才取这两个方法，所以在实例上包一层就能零延迟拿到路由信号；补上 `pageshow`（bfcache 恢复）与 `visibilitychange`。500ms 轮询降级为 **5s 兜底**，并保留极端环境（历史方法不可写）下的自动回退到 500ms。
+- **不动的地方**：包装函数原样调用原方法、原样返回、异常原样抛；回调自身出错不外泄（监测代码绝不能把导航搞挂）；不新增任何 `MutationObserver`（守卫预算仍是 0/0）。
+- **验收**（WebKit + iPhone 视口，`setInterval` 打桩 + `visualViewport` 替身）：空闲定时器 `[15000(宿主), 5000(插件)]`——**无 300ms**；键盘弹起 → 300 立即出现且校正生效（`maxHeight=120px`、`translateY(-112px)`）；手动抹掉样式后 **500ms 内自动重校正**；键盘收起 → 300 消失且样式复原；裸 `pushState` 底栏跟随 **19ms**、`history.back()` **12ms**；G3 10/11（唯一红的 R10 是官方 bundle 指纹/版本区间过期，与本改动无关）。
+- **净效果**：空闲负载 `19200 → 720` 次/小时（**-96%**），且路由响应从"最坏 500ms"变成"事件级毫秒"。前端资源按请求读盘，本次同样**未重启宿主**。
+
+### ③ 待落（本轮不动）
+
+- 官方 56px 图标栏占正文宽度（390 宽只剩 302）。
+
 ## v1.2.0（C 路线：功能升级）— 2026-10-23
 
 用户拍板走 C 路线（升级功能，而不是只做「能用」），落点分三组：C1 官方 API 优先、C2 修边界、C3 兼容加固。

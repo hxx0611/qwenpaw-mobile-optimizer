@@ -6,10 +6,11 @@
 //     标「需回聊天页」且保留点击：自动 navigate('/') 后轮询等挂载代点（waitOfficial）。
 
 import { antd, icons, toast } from '../api/qw.js';
-import { useAppState, set, toggleSheet, toggleDrawer } from '../state.js';
+import { useAppState, set, get, toggleSheet, toggleDrawer } from '../state.js';
 import { PAGES } from '../api/pages.js';
 import { clickOfficial, waitOfficial, availability } from '../legacy/click.js';
 import { navigate, isChatRoute } from '../api/nav.js';
+import { toggleRail, railOn, showAgentSwitcher } from '../rail.js';
 import { listProviders, getActive, buildOptions, setActive } from '../api/models.js';
 
 export function FeatureSheet() {
@@ -190,6 +191,33 @@ export function FeatureSheet() {
     icon: I.MoreOutlined,
     run: function () {
       set({ pagesView: true });
+    },
+  });
+  // v1.3.0：官方 56px 图标栏被移出文档流（见 src/rail.js）。它的顶部两项功能在这里补位：
+  //   选择智能体 —— 合成点击官方按钮，气泡照旧锚在屏内；
+  //   官方图标栏 —— 一键召回原布局，写 localStorage，跨导航存活。
+  items.push({
+    key: 'agentSwitch',
+    label: '切换智能体',
+    sub: '官方智能体气泡',
+    icon: I.UserSwitchOutlined,
+    run: function () {
+      close();
+      // 先关面板再点，气泡才不会跟面板抢层级（Drawer 关闭动画 ~200ms）
+      setTimeout(function () {
+        if (!showAgentSwitcher()) toast('没找到智能体切换按钮', 'error');
+      }, 260);
+    },
+  });
+  items.push({
+    key: 'rail',
+    label: '官方图标栏',
+    sub: railOn() ? '已显示 · 占 56px 宽' : '已隐藏 · 正文吃满屏',
+    icon: I.LayoutOutlined,
+    run: function () {
+      var on = toggleRail();
+      toast(on ? '已显示官方图标栏' : '已隐藏官方图标栏，正文恢复全宽');
+      set({ railRev: (get().railRev || 0) + 1 });
     },
   });
   if (!isChatRoute()) {

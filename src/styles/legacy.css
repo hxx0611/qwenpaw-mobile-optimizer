@@ -31,8 +31,43 @@
   /* 规则 3（收尾时单独摘回）：iOS 键盘弹起时抬升输入区。
      Safari 不支持 interactive-widget=resizes-content，键盘只缩 visualViewport、布局视口不动，
      所以必须自己抬；用 transform 而非改 height/margin，避免整页重排。
-     --mo2-kbd 由 src/env/viewport.js 写在 :root 上，不碰官方节点的内联样式。 */
-  [class*="sender"] {
+     --mo2-kbd 由 src/env/viewport.js 写在 :root 上，不碰官方节点的内联样式。
+     ⚠ 只认最外层 .qwenpaw-sender。原写法 [class*="sender"] 会同时命中 content /
+     content-bottom / prefix / actions / input 等 9 个嵌套节点，位移逐层叠加
+     （实测键盘 300px 时工具栏跑到 y=-441），整块输入区飞出屏幕。 */
+  .qwenpaw-sender {
     transform: translateY(calc(-1 * var(--mo2-kbd, 0px)));
+  }
+
+  /* 规则 4：官方 56px 折叠图标栏占掉正文宽度（390 → 334）。把它移出文档流：盒子仍在（弹层
+     靠 Rect 定位，不能用 display:none），但不再跟正文抢横向空间。开关写 <html data-mo2-rail="on">，
+     见 src/rail.js；召回后本条不命中，官方原布局原样回来。
+     选择器只认「.qwenpaw-layout-has-sider 的直接子级 + 内联 56px」这一结构事实：
+     官方改宽度 → 规则失效 → 侧栏回来（外观回退，不崩）。 */
+  html:not([data-mo2-rail="on"]) .qwenpaw-layout-has-sider > div[style*="width: 56px"] {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    height: 100% !important;
+    z-index: 60 !important;
+    transform: translateX(-100%) !important;
+  }
+
+  /* 规则 5：官方在 ≤600px 把输入框下方工具栏改成单列 grid（grid-template-columns:
+     minmax(0, 1fr)），「前缀区」和「发送键」各占一行 —— 视觉上就是功能板没对齐、发送键
+     掉到第二行，整块 composer 高 160px。这里还原成「前缀占满剩余宽度 + 发送键靠右」单行。
+     仍用 grid 而不是改 display:flex：官方弹层按原 Grid 盒模型测量，锚点不会跑。 */
+  .qwenpaw-sender .qwenpaw-sender-content-bottom {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-rows: auto !important;
+  }
+
+  /* 规则 6：iOS 聚焦自动放大。官方 textarea 的 font-size 读 var(--app-font-body)，其规则
+     （.chatPageRoot textarea[data-sender-input=true]）特异性高于 base.css 里的
+     input/textarea 16px 常驻守卫，于是实际算出来是 14px → Safari 聚焦时整页放大。
+     不去外层覆盖 font-size（要跟官方的 !important 比特异性，脆），而是把官方变量就地改成
+     16px，官方规则自己算出 16px。作用域只有这个 textarea，不影响消息正文。 */
+  .qwenpaw-sender textarea[data-sender-input="true"] {
+    --app-font-body: 16px;
   }
 }

@@ -32,7 +32,8 @@ import { BottomTabs } from './ui/BottomTabs.jsx';
 import { SessionDrawer } from './ui/SessionDrawer.jsx';
 import { ToolsPage } from './ui/ToolsPage.jsx';
 import { startGestures } from './env/gesture.js';
-import { set, get } from './state.js';
+import { applyRail } from './rail.js';
+import { set, get, setPath } from './state.js';
 import { bundleCheck, compat } from './env/drift.js';
 
 // 把一段 React 内容注册进官方插槽。失败即返回错误，由上层决定"整体不注入"——
@@ -155,21 +156,61 @@ function reactivate(info) {
   info.reactivations = (info.reactivations || 0) + 1;
 }
 
+// 官方 SPA 跳转（react-router）最终都落在 history.pushState/replaceState 上。
+// history@5 的 createBrowserHistory 在**调用时**才取 window.history.pushState，
+// 所以在这里挂一层包装就能拿到零延迟的路由信号，不必靠 500ms 轮询去"看"。
+// 包装遵守三条：① 原函数照常调用、原样返回（异常原样抛，不改官方语义）；
+// ② 回调自己出错不外泄（绝不让监测代码把导航搞挂）；③ 只 shadow 实例方法，不动原型。
+function patchHistory(check) {
+  try {
+    var h = window.history;
+    if (!h || typeof h.pushState !== 'function') return false;
+    var wrap = function (name) {
+      var orig = h[name];
+      if (typeof orig !== 'function') return;
+      var f = function () {
+        var r = orig.apply(this, arguments);
+        try { check(); } catch (e) {}
+        return r;
+      };
+      try { Object.defineProperty(f, 'name', { value: String(name) }); } catch (e) {}
+      try { Object.defineProperty(f, 'length', { value: orig.length }); } catch (e) {}
+      h[name] = f;
+    };
+    wrap('pushState');
+    wrap('replaceState');
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 function watchRoute(info) {
   var last = window.location.pathname || '/';
   var check = function () {
     var now = window.location.pathname || '/';
     if (now === last) return;
     last = now;
+    // 兜底广播：官方内部跳转（不经我们的 navigate）只有这里能感知，500ms 内到达。
+    // 放在 cleanup/reactivate 之前——被拦页（登录页）也要让底栏立刻让位。
+    setPath(now);
     if (isBlockedRoute()) cleanup(info);
     else if (info.cleaned) reactivate(info);
   };
   window.addEventListener('popstate', check);
   window.addEventListener('hashchange', check);
-  var timer = window.setInterval(check, 500);
-  info.routeWatch = timer;
+  // bfcache 恢复（登录跳转回来最常见）与标签页回前台：各补一次，成本为零。
+  window.addEventListener('pageshow', check);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+
+  var intercepted = patchHistory(check);
+  info.routeWatch = 'events' + (intercepted ? '+5s' : '+500ms');
+  info.historyPatched = intercepted;
+  // 兜底巡检：拦得住历史方法就 5s 一次（720 次/小时），拦不住（极端环境）退回原来的 500ms。
+  var timer = window.setInterval(check, intercepted ? 5000 : 500);
+  info.routeTimer = timer;
   // 刻意【不】把本监听放进 info.disposables：cleanup 若把自己杀掉，
-  // 登录页出来后 chrome 就永远回不来了（zombie chrome 的根因）。它只是每 500ms 比一次路径，成本可忽略。
+  // 登录页出来后 chrome 就永远回不来了（zombie chrome 的根因）。它只是比一次路径，成本可忽略。
 }
 
 async function boot() {
@@ -212,6 +253,7 @@ async function boot() {
   }
 
   injectStyle();
+  info.railOn = applyRail(); // 把「官方图标栏」开关写回 <html>，CSS 一条规则据此收放侧栏
   info.manifestAdded = injectManifest();
   startViewport();
   info.active = true;

@@ -55,6 +55,8 @@ def swipe(pg, x0, x1, y=380):
 
 
 def state(pg):
+    # pages 数的是 /mo2 工具页的官方页面入口（.mo2-tools-item）。
+    # 别用 .mo2-pages-item —— 那是功能面板「更多官方页面」二级视图的类名，R8 曾因此一直假红。
     return pg.evaluate("""() => {
       const m = window.__mo2 || {};
       const btn = document.querySelector('[aria-label="mo2-功能面板"]');
@@ -68,7 +70,7 @@ def state(pg):
         tabsBottom: tabs ? Math.round(tabs.getBoundingClientRect().bottom) : -1,
         items: document.querySelectorAll('.mo2-session-item').length,
         tools: !!document.querySelector('.mo2-tools'),
-        pages: document.querySelectorAll('.mo2-pages-item').length,
+        pages: document.querySelectorAll('.mo2-tools-item').length,
         integ: m.integration || {}, drift: m.drift || {}, compat: m.compat || {},
       };
     }""")

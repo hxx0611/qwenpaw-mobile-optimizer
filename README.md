@@ -1,8 +1,8 @@
 # Mobile Optimizer（QwenPaw 移动端优化插件）
 
-让 QwenPaw 在手机 / 小屏上更好用的纯前端插件。**v1.2.0**。
+让 QwenPaw 在手机 / 小屏上更好用的纯前端插件。**v1.3.0**。
 
-当前版本：**1.2.0** ｜ 插件 ID：`qwenpaw-mobile-optimizer-v2` ｜ 作者：hxx0611 ｜ 基线：iOS 26+ / QwenPaw 2.2.0 ~ 2.2.2.post1（实测上界，插件自己比对 `/api/version`）
+当前版本：**1.3.0** ｜ 插件 ID：`qwenpaw-mobile-optimizer-v2` ｜ 作者：hxx0611 ｜ 基线：iOS 26+ / QwenPaw 2.2.0 ~ 2.4.0（插件自己比对 `/api/version`）
 
 仅移动端（≤768px）生效；PC 端零影响（不注入样式、不建 DOM、不加监听、不碰 console）；禁用插件后刷新即还原。
 
@@ -15,7 +15,7 @@ v2 改为**通过官方扩展点参与渲染**：UI 用官方 `window.QwenPaw.ho
 | 指标 | v1 | v2 实际 |
 |---|---|---|
 | MutationObserver | 12 | **0** |
-| 官方类名引用 | 425 | **3 条规则**，全部集中在 `src/styles/legacy.css` |
+| 官方类名引用 | 425 | **6 条规则**，全部集中在 `src/styles/legacy.css` |
 | 中文文案匹配 | 12 处 | **0** |
 | PC 端运行时足迹 | 有 | **0 行代码执行** |
 | 上游不兼容时 | 半套生效（"只剩设置按钮"） | **完全不注入**，外观回到官方原生 |
@@ -23,9 +23,11 @@ v2 改为**通过官方扩展点参与渲染**：UI 用官方 `window.QwenPaw.ho
 ## 现在能用什么
 
 - **顶栏三个入口**：新建对话 / 会话列表 / 功能面板（官方 `header.right` 槽 + antd Button）
-- **功能面板**：底部抽屉（antd `Drawer` + `List`），条目 = 新建会话、模型选择、模型管理、工具管理、打开文件工作区、Loop 模式、工具审批模式、返回聊天（仅非聊天页）
+- **功能面板**：底部抽屉（antd `Drawer` + `List`），条目 = 新建会话、模型选择、模型管理、工具管理、打开文件工作区、Loop 模式、工具审批模式、切换智能体、官方图标栏开关、更多官方页面（收件箱 / 扩展 / 运行配置）、返回聊天（仅非聊天页）
+- **官方图标栏开关**：默认把官方 56px 侧栏移出屏外（`fixed` + `translateX(-100%)`，保留可测盒模型，不用 `display:none`），正文从 334px 吃满到 390px；需要时一键召回，状态跨导航存活
 - **模型切换走 REST**：`GET /api/models` 列表 + `PUT /api/models/active`（`scope:"agent"`），切换后派发 `model-switched` 让官方 UI 同步。不再需要 v1 那套"临时显示 header 骗出官方弹层"
-- **输入框下方只留 4 项**：麦克风 / 附件 / 上下文用量 / 发送；Loop、工具审批、项目目录收进面板
+- **输入框下方只留 4 项**：麦克风 / 附件 / 上下文用量 / 发送；Loop、工具审批、项目目录收进面板。**强制单行**：官方在 ≤600px 会把它改成单列 grid 让发送键掉到第二行，插件内还原 `minmax(0,1fr) auto`
+- **输入框 16px 防聚焦放大**：官方 textarea 走 `var(--app-font-body)`（14px）且特异性压过全局守卫，触点即整页缩放；插件就地把该变量改成 16px
 - **键盘不挡输入框**：`--mo2-kbd` + `transform` 抬升输入区（Safari 不支持 `interactive-widget=resizes-content`，只能测 `visualViewport`）
 - **PWA**：分享 → 添加到主屏幕，名称 **QwenPaw**、官方 logo 图标，打开后全屏无 Safari 工具栏
 - **底部 Tab 导航**：聊天 / 模型 / 设置三入口；聊天页主动让位（那里底部是官方输入框，压上去就是"输入框被盖住"）
@@ -86,6 +88,7 @@ src/boot/inject.js    全仓唯一允许 appendChild 的文件（1 个 style + m
 src/env/viewport.js   唯一常驻几何 JS，只写 :root 的 CSS 变量
 src/env/gesture.js    左缘手势状态机（监听全 passive，不 preventDefault）
 src/env/drift.js      官方 bundle 指纹白名单 + 漂移告警（暴露 __mo2.drift）
+src/rail.js           官方侧栏召回/收走的开关（唯一动官方布局的模块，纯 CSS 变量驱动）
 src/legacy/click.js   全仓唯一允许与官方 DOM 交互的文件，且只允许 .click()
 src/ui/{TopBar,FeatureSheet,BottomTabs,SessionDrawer,ToolsPage,selftest}.jsx
 src/styles/{base,legacy}.css

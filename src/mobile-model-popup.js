@@ -4,6 +4,7 @@
 // mobile() + keyboardOpen() 双重把关，PC 端与键盘未弹起时一行代码都不跑。
 var MARK = 'data-mo2-model-popup';
 var timer = 0;
+var started = false;
 var listeners = [];
 var saved = new WeakMap();
 
@@ -47,19 +48,48 @@ function restore() {
     saved.delete(el);
   });
 }
+// v1.2.1：300ms 校正轮询改为**按需武装**（原来是无条件常驻，空闲一小时空跑 12000 次）。
+// 语义完全不变：键盘弹起期间仍是每 300ms 校正一次（异步渲染出来的下拉也能被追上），
+// 键盘收起后立刻撤掉定时器 —— 那正是唯一"没有任何东西需要校正"的时段。
+// 武装/撤除都由事件驱动（visualViewport resize/scroll、focusin、click），不新增观察者。
+function active() {
+  return mobile() && keyboardOpen();
+}
+function arm() {
+  if (!timer) timer = window.setInterval(tick, 300);
+}
+function disarm() {
+  if (timer) { window.clearInterval(timer); timer = 0; }
+}
+function tick() {
+  adjust();
+  // 自愈：万一没收到键盘收起的 resize，下一次 tick 也能发现并撤掉轮询。
+  if (!active()) disarm();
+}
+function run() {
+  window.requestAnimationFrame(function () {
+    adjust();
+    if (active()) arm(); else disarm();
+  });
+}
 export function startModelPopupGuard() {
-  if (timer) return function () {};
-  var run = function () { window.requestAnimationFrame(adjust); };
+  if (started) return function () {};
+  started = true;
   var vv = window.visualViewport;
   ['resize', 'scroll'].forEach(function (ev) { if (vv) { vv.addEventListener(ev, run); listeners.push([vv, ev, run]); } });
   document.addEventListener('focusin', run, true);
   document.addEventListener('click', run, true);
   listeners.push([document, 'focusin', run, true], [document, 'click', run, true]);
-  timer = window.setInterval(adjust, 300);
-  adjust();
+  run(); // 首帧：需要时立即武装
   return function () {
-    if (timer) window.clearInterval(timer); timer = 0;
+    disarm();
+    started = false;
     listeners.forEach(function (x) { x[0].removeEventListener(x[1], x[2], x[3]); });
     listeners = []; restore();
   };
+}
+
+// 供自检/验收读取：轮询是否正在武装
+export function popupGuardState() {
+  return { armed: !!timer, started: started };
 }
