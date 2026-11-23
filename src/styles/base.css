@@ -455,3 +455,49 @@
     background: rgba(255, 255, 255, 0.03);
   }
 }
+/* ================= A 方案兜底壳（2026-11-23 上游 2.3.0.post1 回归） =================
+   仅在「官方 slot 注册成功但零渲染」时挂到 body 自有根上；官方正常时不产生任何节点。
+   类名全部自带 mo2-fb- 前缀，不改官方类名、不动官方节点。 */
+
+.mo2-fb-dock {
+  position: fixed;
+  /* 落在官方标题栏下方一行：官方 header 自身不渲染我们的 slot，
+     但右边两个图标（控制台 / 复制）还在，压上去会挡掉，所以整体下移一行。 */
+  top: calc(52px + env(safe-area-inset-top, 0px));
+  right: calc(8px + env(safe-area-inset-right, 0px));
+  z-index: 950;
+  display: flex;
+  align-items: center;
+  padding: 2px 4px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.14);
+}
+
+/* /mo2：官方路由渲染不出来，兜底自己铺一层页面（在抽屉 mask 之下、底栏之上） */
+.mo2-fb-page {
+  position: fixed;
+  inset: 0;
+  z-index: 940;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+  padding-top: calc(14px + env(safe-area-inset-top, 0px));
+}
+
+/* 兜底页盖住官方内容时，底栏要浮在页面上，否则点不到 */
+html.mo2-fb-on .mo2-tabs {
+  z-index: 960;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mo2-fb-dock {
+    background: rgba(24, 24, 27, 0.92);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+  }
+  .mo2-fb-page {
+    background: #141416;
+  }
+}

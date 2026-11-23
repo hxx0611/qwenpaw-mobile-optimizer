@@ -35,6 +35,7 @@ import { startGestures } from './env/gesture.js';
 import { applyRail } from './rail.js';
 import { set, get, setPath } from './state.js';
 import { bundleCheck, compat } from './env/drift.js';
+import { startFallback, resetFallback } from './boot/fallback.js';
 
 // 把一段 React 内容注册进官方插槽。失败即返回错误，由上层决定"整体不注入"——
 // chrome 不做 body 挂载兜底（那是 v1 的 DOM 手术老路），只有自检面板允许兜底。
@@ -132,6 +133,7 @@ function renderSelfTest() {
 }
 
 function cleanup(info) {
+  try { resetFallback(info); } catch (e) {}
   try { (info.disposables || []).forEach(function (d) { if (typeof d === 'function') d(); }); } catch (e) {}
   try { if (info.stopGestures) info.stopGestures(); } catch (e) {}
   try { stopViewport(); } catch (e) {}
@@ -151,6 +153,8 @@ function reactivate(info) {
   startViewport();
   var chromeGone = !document.querySelector('[aria-label="mo2-功能面板"]');
   if (chromeGone) registerChrome(info);
+  // 回魂后重新判一次：官方可能已在别处恢复渲染，也可能依旧不渲染。
+  try { info.fallback = startFallback(info); } catch (e) {}
   info.active = true;
   info.cleaned = false;
   info.reactivations = (info.reactivations || 0) + 1;
@@ -267,6 +271,7 @@ async function boot() {
     isOpen: function () { return !!get().drawer; },
   });
   watchRoute(info);
+  info.fallback = startFallback(info); // A 方案：插槽零渲染时自绘兜底（官方正常则不挂）
 
   if (selfTestRequested()) {
     var r = renderSelfTest();

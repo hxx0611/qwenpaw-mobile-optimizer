@@ -77,6 +77,20 @@ export function ensureMount() {
   return el;
 }
 
+// A 方案兜底壳的挂载点：独立子节点，避免与自检面板抢同一个 React root。
+export var FALLBACK_ID = 'qwenpaw-mo2-fb';
+
+export function ensureFallbackMount() {
+  var root = ensureMount();
+  var el = document.getElementById(FALLBACK_ID);
+  if (el) return el;
+  el = document.createElement('div');
+  el.id = FALLBACK_ID;
+  el.setAttribute('data-mo2', '1');
+  root.appendChild(el);
+  return el;
+}
+
 export function manifestHref() {
   var l = linkRel('manifest');
   return l ? l.href : '';
