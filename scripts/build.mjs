@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
-const ESB = '/app/user-packages/node/bin/esbuild';
+const ESB = process.env.ESBUILD || '/app/user-packages/node/lib/node_modules/esbuild/bin/esbuild';
 const OUT = join(ROOT, 'frontend', 'index.js');
 
 function run(args) {

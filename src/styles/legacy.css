@@ -1,4 +1,4 @@
-/* legacy.css —— 全仓唯一允许出现官方类名前缀的文件。规则上限 6 条，每条必须写明理由。
+/* legacy.css —— 全仓唯一允许出现官方类名前缀的文件。规则上限 9 条，每条必须写明理由。
    失效模式被刻意压成「某个按钮没藏住」这种外观瑕疵，不会崩、不会锁交互。
    选择器只用 CSS Modules 的【模块名片段】（modeTrigger / ApprovalToggle-module__trigger …），
    它们跨构建稳定，只有 __哈希 后缀会变；不用 aria-label（中文文案，i18n 一变就失效）。 */
@@ -8,9 +8,18 @@
      注意：不用 display:none！display:none 会让元素失去盒子，官方弹层按 getBoundingClientRect
      定位时会退化到 (0,0) 而整层飞出屏幕（v0.1.78 踩过）。这里把盒子压成 0 宽但保留位置，
      弹层仍然锚在输入框那一行的原位，落在屏内。 */
+  /* 选择器必须带 button 或父级类名：官方 `.composerResponsiveItem button { padding-inline: 5px !important }`
+     是 (0,2,1)，纯 `[class*="modeTrigger"]` 只有 (0,1,0)，padding 压不下去 —— 0 宽盒子被左右各 5px
+     内边距撑回 10px，里面的 20px 图标就溢出来盖住邻居（v1.3.1 右上角糊成一团就是这么来的）。 */
   [class*="modeTrigger"],
   [class*="ApprovalToggle-module__trigger"],
-  [class*="SessionProjectDirectory-module__trigger"] {
+  [class*="SessionProjectDirectory-module__trigger"],
+  [class*="composerResponsiveItem"] [class*="modeTrigger"],
+  [class*="composerResponsiveItem"] [class*="ApprovalToggle-module__trigger"],
+  [class*="composerResponsiveItem"] [class*="SessionProjectDirectory-module__trigger"],
+  [class*="modeTrigger"] > svg,
+  [class*="ApprovalToggle-module__trigger"] > svg,
+  [class*="SessionProjectDirectory-module__trigger"] > svg {
     width: 0 !important;
     min-width: 0 !important;
     max-width: 0 !important;
@@ -69,5 +78,29 @@
      16px，官方规则自己算出 16px。作用域只有这个 textarea，不影响消息正文。 */
   .qwenpaw-sender textarea[data-sender-input="true"] {
     --app-font-body: 16px;
+  }
+
+  /* 规则 7：输入框底栏单行对齐（v1.3.2）。官方给前缀区写了 `flex: 1 0 max-content` +
+     `min-width: max-content`，前缀一长就完全不收缩，剩余宽度全被它吃掉，动作区被挤到 100px：
+     里面两个「已收起」控件各被压成 10px，图标溢出、互相压叠，最右的发送键还被盖住。
+     改法只是让前缀愿意收缩（0 1 auto + min-width 0），动作区按自己内容宽度靠右停住。
+     不动 display：底栏仍是 flex，官方弹层按原盒子测量，锚点不跑。 */
+  .qwenpaw-sender .qwenpaw-sender-prefix {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .qwenpaw-sender .qwenpaw-sender-actions-list {
+    flex: 0 0 auto !important;
+    margin-left: auto !important;
+  }
+
+  /* 规则 8：模型胶囊里的名字要出省略号（v1.3.2）。官方把标签写成 flex: 1 0 auto，不肯缩，
+     超长模型名就被胶囊硬裁成「deepseek-v4.1-flash-1」这种半截字，看着像坏掉。
+     让标签可缩，它自带的 text-overflow: ellipsis 才生效。 */
+  .qwenpaw-sender .qwenpaw-sender-prefix [class*="thinking-module__trigger"] > span {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
   }
 }

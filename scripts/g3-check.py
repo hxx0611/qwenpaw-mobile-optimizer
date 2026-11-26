@@ -9,7 +9,7 @@
 依赖：pwenv（Playwright 环境）+ mo2_auth（本机免鉴权，seed 只是防 SPA 守卫跳 /login）
 """
 import json
-import sys
+import os, sys
 
 import pwenv  # noqa: F401  （必须先导入：设置 PLAYWRIGHT_BROWSERS_PATH）
 from playwright.sync_api import sync_playwright
@@ -78,7 +78,7 @@ def state(pg):
 
 def main():
     with sync_playwright() as p:
-        b = p.webkit.launch()
+        b = getattr(p, os.environ.get('MO2_BROWSER', 'webkit')).launch(**({'executable_path':'/usr/bin/chromium','args':['--no-sandbox','--disable-dev-shm-usage']} if os.environ.get('MO2_BROWSER')=='chromium' else {}))
 
         # ---------- 移动端会话 ----------
         pg = b.new_page(viewport={"width": 402, "height": 714}, user_agent=UA)

@@ -7,7 +7,7 @@ R3 移动宽度+拦截v1 → v2 激活，?mo_selftest=1 自检面板渲染（A4�
 
 用法: python3 scripts/webkit-check.py [base_url]
 """
-import sys, json, time
+import os, sys, json, time
 import pwenv  # noqa: F401  必须早于 playwright：固化浏览器路径（容器重建会丢 overlay 里的浏览器）
 from playwright.sync_api import sync_playwright
 from mo2_auth import seed
@@ -56,7 +56,7 @@ def info(pg):
 def run(name, viewport, ua, url, block_v1=False, expect=None):
     logs = []
     with sync_playwright() as p:
-        b = p.webkit.launch()
+        b = getattr(p, os.environ.get('MO2_BROWSER', 'webkit')).launch(**({'executable_path':'/usr/bin/chromium','args':['--no-sandbox','--disable-dev-shm-usage']} if os.environ.get('MO2_BROWSER')=='chromium' else {}))
         pg = b.new_page(viewport=viewport, user_agent=ua)
         pg.on("console", lambda m: logs.append(f"{m.type}: {m.text}"[:220]))
         seed(pg)  # Auth 启用后注入登录态，避免 SPA 守卫跳转 /login

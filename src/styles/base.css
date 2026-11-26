@@ -470,10 +470,14 @@
   align-items: center;
   padding: 2px 4px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.9);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.14);
+  /* 2026-11-26：改用官方主题变量。原先写死 rgba(255,255,255,.9) + prefers-color-scheme 分支，
+     而 QwenPaw 的深浅色是应用内设置，跟系统主题可以不一致 → 深色界面里浮出一块白/灰「贴纸」。
+     --app-surface-raised / --app-border / --app-text / --app-shadow-sm 是官方控制台自己的令牌，
+     随应用主题走；后面保留旧值做兜底，变量缺失时外观回到原样（不崩）。 */
+  background: var(--app-surface-raised, rgba(255, 255, 255, 0.9));
+  color: var(--app-text, inherit);
+  border: 1px solid var(--app-border, rgba(0, 0, 0, 0.08));
+  box-shadow: var(--app-shadow-sm, 0 1px 8px rgba(0, 0, 0, 0.14));
 }
 
 /* /mo2：官方路由渲染不出来，兜底自己铺一层页面（在抽屉 mask 之下、底栏之上） */
@@ -483,7 +487,8 @@
   z-index: 940;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
-  background: #fff;
+  background: var(--app-surface, #fff);
+  color: var(--app-text, inherit);
   padding-top: calc(14px + env(safe-area-inset-top, 0px));
 }
 
@@ -493,11 +498,12 @@ html.mo2-fb-on .mo2-tabs {
 }
 
 @media (prefers-color-scheme: dark) {
+  /* dock 与兜底页已改为跟随官方主题变量，这里只保留旧系统深色兜底 —— 变量缺失时生效。 */
   .mo2-fb-dock {
-    background: rgba(24, 24, 27, 0.92);
-    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+    background: var(--app-surface-raised, rgba(24, 24, 27, 0.92));
+    box-shadow: var(--app-shadow-sm, 0 1px 8px rgba(0, 0, 0, 0.5));
   }
   .mo2-fb-page {
-    background: #141416;
+    background: var(--app-surface, #141416);
   }
 }
