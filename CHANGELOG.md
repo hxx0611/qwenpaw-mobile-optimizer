@@ -1,5 +1,16 @@
 # 变更日志
 
+## v1.3.4 — 2026-11-26
+
+### 入口集体消失（修）
+
+- **现象**：手机刷新后顶栏三个按钮（会话栏 / 新建对话 / 功能面板）全没了，侧滑抽屉也就打不开，功能面板自然进不去。
+- **根因**：v1.3.3 改功能面板配色时，`src/ui/FeatureSheet.jsx` 被误删 93 行（第 26–126 行），`close` / `openModelView` / `onPick` / `composerEntry` / `composerItem` 五个函数跟着一起没了。渲染到 `run: openModelView` 这一行直接抛 `ReferenceError`，React 把整棵兜底树卸载 —— 所以不是某个按钮坏了，是全没了。构建时的 `node --check` 只查语法，查不出「用了没定义的变量」。
+- **做法**：
+  1. 从 tag `v1.3.2` 取回 `FeatureSheet.jsx` 原文（371 行），五个函数全部复位；
+  2. 新增分段错误边界 `Guard`：顶栏、功能面板、底栏、侧滑抽屉各包一层，谁崩谁自己变空，其余入口照常可用，错误写进 `window.__mo2.lastError`，不再一个组件带崩整页。
+- **验证**（390×844，真实宿主 2.3.0.post1）：兜底壳 `on`；三个按钮 `24×24`、`top=55`、`opacity=1` 全部可见；功能面板 12 条齐全；侧滑抽屉 84 个会话；插件自身 0 报错。深色令牌下底 `#262626`、白字对比度 15:1。
+
 ## v1.3.2 — 2026-11-26
 
 ### 输入框底栏不再互相压叠（修）
@@ -20,7 +31,7 @@
 
 ### 工具链（构建 / 验收脚本）
 
-- `scripts/build.mjs` 的 esbuild 路径改为可覆盖：`ESBUILD` 环境变量优先，默认走容器内实际路径（容器重建后该路径会消失）。
+- `scripts/build.mjs` 的 esbuild 路径改为可覆盖：`ESBUILD` 环境变量优先，默认容器内实际路径（容器重建后原 `/app/user-packages/node/bin/esbuild` 会消失）。
 - `scripts/webkit-check.py`、`scripts/g3-check.py` 支持 `MO2_BROWSER=chromium`：WebKit 二进制随容器重建丢失时，可用系统 Chromium 跑同一套断言。
 
 ## v1.3.1 — 2026-11-23

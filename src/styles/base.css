@@ -76,8 +76,34 @@
   font-size: 15px;
 }
 
+/* v1.3.3 抽屉配色 —— 根因：插件这棵 React 子树不在宿主的深色 ConfigProvider 里，
+   antd 自己的 token 还是浅色（正文色 rgba(0,0,0,.88)），而宿主 CSS 又把抽屉底色
+   强制成 var(--app-bg)（深色 #141414）→ 黑字压在近黑底上，实测对比度约 1.1:1。
+   解法：别信 antd token，直接用宿主主题变量给抽屉和文字上色，并用 !important 压回
+   宿主的 html.dark-mode 规则（那是 (0,2,1)，这里用 html 前缀抬到 (0,3,1)）。 */
+html .mo2-drawer .ant-drawer-content,
+html .mo2-drawer .ant-drawer-header,
+html .mo2-drawer .ant-drawer-body {
+  background: var(--app-surface-raised, #fff) !important;
+  color: var(--app-text, inherit) !important;
+}
+
+html .mo2-drawer .ant-drawer-title,
+html .mo2-drawer .ant-drawer-close,
+html .mo2-drawer .ant-drawer-body .ant-list-item,
+html .mo2-drawer .mo2-row-item,
+html .mo2-drawer .mo2-row-label,
+html .mo2-drawer .mo2-row-ico {
+  color: var(--app-text, inherit) !important;
+}
+
+html .mo2-drawer .ant-drawer-header {
+  border-bottom: 1px solid var(--app-border, rgba(127, 127, 127, 0.16)) !important;
+}
+
 .mo2-drawer .mo2-row-sub {
   font-size: 11px;
+  color: var(--app-text, inherit);
   opacity: 0.6;
   overflow: hidden;
   text-overflow: ellipsis;
